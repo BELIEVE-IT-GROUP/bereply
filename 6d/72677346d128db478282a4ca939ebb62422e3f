@@ -1,0 +1,42 @@
+__tests__/tracking.test.ts
+  s_b99445352cad31::t_6b89cdc4e4a2c1 42-64
+__tests__/ecommerce-webhook.test.ts
+  s_b99445352cad31::t_1593c63b3f44e8 51
+  s_b99445352cad31::t_babcd861069c9d 1-50,52-142
+app/api/webhooks/ecommerce/route.ts
+  s_b99445352cad31::t_5a14d7c577a0b6 109-128,134,138-141
+  s_b99445352cad31::t_9958df9b84f0ff 5,20-24
+lib/tracking/message.ts
+  s_b99445352cad31::t_3c0dbdf6738d60 54-65,72-73,81,87-88,95
+app/r/[slug]/route.ts
+  s_b99445352cad31::t_53c64e5aa69cb1 34
+  s_b99445352cad31::t_05771d5b0dee83 30-33,35-45,52,59-69
+prisma/migrations/20260905130000_add_linkclick_contact/migration.sql
+  s_b99445352cad31::t_b380f1b2f3f7e7 1-8
+prisma/schema.prisma
+  s_b99445352cad31::t_285a93ba0911dd 178
+  s_b99445352cad31::t_409fef2f5c0154 342-346,356,362
+lib/queue/dm-worker.ts
+  s_b99445352cad31::t_295a2f20ed6e46 668-669
+  s_b99445352cad31::t_e930426b203a25 94,97-98,101,109,115-116,119,121-123,128-129,140-145,154-164,187-188,217-218
+  s_b99445352cad31::t_6d5a981f69810c 620-633,642-643
+__tests__/redirect.test.ts
+  s_b99445352cad31::t_d40847ef394c56 11-13
+  s_b99445352cad31::t_0fc3fd3ed03435 69-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6d72677346d128db478282a4ca939ebb62422e3f",
+  "prompts": {},
+  "sessions": {
+    "s_b99445352cad31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "61c17e4e-c8bc-4aca-8e23-db05f91d8f42",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
