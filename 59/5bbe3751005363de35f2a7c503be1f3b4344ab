@@ -1,0 +1,88 @@
+app/(dashboard)/campaigns/[id]/flow/page.tsx
+  s_5e2d6567006582::t_08d8ba0ff9d4e2 1-54
+vitest.config.ts
+  s_5e2d6567006582::t_eb6a11929eb5f2 8
+app/api/automations/route.ts
+  s_5e2d6567006582::t_ba6d3d78b1b285 441-442
+  s_5e2d6567006582::t_6c4438a8612b6c 5
+  s_5e2d6567006582::t_18de687ceb24aa 115-119
+  s_5e2d6567006582::t_0ef6419ec2ae79 554-560
+  s_5e2d6567006582::t_e58188eb8d4fd6 64-68
+app/api/settings/ecommerce/route.ts
+  s_5e2d6567006582::t_f9c55ee5f8afa0 1-2,7-93
+  s_5e2d6567006582::t_9ce032958bcf25 3-6
+app/(dashboard)/settings/page.tsx
+  s_5e2d6567006582::t_dda9105588076e 48-53,59-61,72,74,77-80,85-107
+  s_5e2d6567006582::t_6f7bf7241c8aaa 377-435
+  s_5e2d6567006582::t_ee05dc5c7ab58a 108
+components/top-bar.tsx
+  s_5e2d6567006582::t_b06901fd3b5249 15
+lib/flow/engine.ts
+  s_5e2d6567006582::t_970f01b10d9f29 1-207
+app/(dashboard)/contacts/page.tsx
+  s_5e2d6567006582::t_6a790d7140b8c5 1-57
+components/sidebar.tsx
+  s_5e2d6567006582::t_e4893959d59aba 18
+lib/queue/dm-worker.ts
+  s_5e2d6567006582::t_35b844ae6e8774 20-21,43-50
+  s_5e2d6567006582::t_0c6632eceaac20 1231-1292,1310-1325,1327-1329
+  s_5e2d6567006582::t_e787ac0711d88c 956-1081
+lib/ai/responder.ts
+  s_5e2d6567006582::t_712dffa40b78f0 1-152
+app/api/webhooks/ecommerce/route.ts
+  s_5e2d6567006582::t_0317a2b7defe27 1-121
+components/campaign-builder.tsx
+  s_5e2d6567006582::t_bd20593d7634af 994-1012
+  s_5e2d6567006582::t_99221851a32bc7 58-59
+  s_5e2d6567006582::t_8d778e85300d25 187-191
+  s_5e2d6567006582::t_890695f563e2e5 20
+  s_5e2d6567006582::t_ce4f6c20ae705a 282-283
+  s_5e2d6567006582::t_9d1f18d01864a3 421-422
+app/api/contacts/route.ts
+  s_5e2d6567006582::t_d623c1fa2c027d 1-36
+components/flow-builder/flow-builder.tsx
+  s_5e2d6567006582::t_8c938ef47cc30e 1-410
+lib/contacts.ts
+  s_5e2d6567006582::t_fda0e534efa52c 1-65
+prisma/schema.prisma
+  s_5e2d6567006582::t_9c0d78e9ab96a1 151-169,171-174
+  s_5e2d6567006582::t_b189d33a5d2ab0 77-82,93
+  s_5e2d6567006582::t_6594e194acc193 409
+  s_5e2d6567006582::t_23964f9c7ee19d 236-245
+lib/flow/engine.test.ts
+  s_5e2d6567006582::t_44315ac33deb5a 1-82,84,90-93,95,106-143
+  s_5e2d6567006582::t_b8a8e4465d73af 83,85-89,94,96-105
+components/contact-tags.tsx
+  s_5e2d6567006582::t_c0fac6ca016dce 1-106
+components/flow-builder/flow-node.tsx
+  s_5e2d6567006582::t_9de67dc9cbce61 1-183
+components/campaign-ai-settings.tsx
+  s_5e2d6567006582::t_81a489e7c23f94 66
+  s_5e2d6567006582::t_6486842c28a271 1-65,67-95
+app/api/automations/[id]/flow/route.ts
+  s_5e2d6567006582::t_1bc56d7b8e961b 1-149
+app/api/contacts/[id]/tags/route.ts
+  s_5e2d6567006582::t_9dc6ec935922eb 1-78
+package-lock.json
+  s_5e2d6567006582::t_99f3a13417bb1a 11,16,58-87,2961-2969,3000-3005,3027-3045,3083-3092,3859-3912,3936-3947,4185-4190,4524-4529,4574-4585,4662-4683,4739-4747,4793-4827,4972-4980,5780-5788,6010-6044,6371-6373,6416-6424,7531-7551,7801-7820,7840-7859,9539-9544,10086-10110,10304-10331
+package.json
+  s_5e2d6567006582::t_7034f2b397a61e 18,23
+prisma/migrations/20260905091136_add_ai_flow_contacts_ecommerce/migration.sql
+  s_5e2d6567006582::t_96b4a2a36fe5f1 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "595bbe3751005363de35f2a7c503be1f3b4344ab",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
