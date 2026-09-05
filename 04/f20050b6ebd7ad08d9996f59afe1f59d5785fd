@@ -1,0 +1,22 @@
+components/campaign-builder.tsx
+  s_5e2d6567006582::t_5d0a207d04f683 548-555,557-570,577-583
+  s_5e2d6567006582::t_ead78fa4b73e96 408-418,422-427,429
+components/sidebar.tsx
+  s_5e2d6567006582::t_70746a8b2e358f 81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "04f20050b6ebd7ad08d9996f59afe1f59d5785fd",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
