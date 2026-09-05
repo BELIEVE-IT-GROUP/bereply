@@ -1,10 +1,25 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-// Reads ANTHROPIC_API_KEY from the environment (picked up automatically by
-// `new Anthropic()` — no need to pass `apiKey` explicitly).
-const client = new Anthropic();
+// Believe apps never hold a provider key directly — every LLM call goes
+// through BeGateway (llm.believe-global.com, OpenAI-compatible) with a
+// per-product key and a semantic tier instead of a hardcoded model name.
+// See believe-infra/GATEWAYS-BELIEVE.md.
+// Built lazily (not at module load) so importing this file never requires
+// the env vars to be set — the OpenAI SDK throws at construction time if
+// apiKey is empty.
+let client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!client) {
+    client = new OpenAI({
+      baseURL: `${process.env.LLM_GATEWAY_URL}/v1`,
+      apiKey: process.env.LLM_GATEWAY_KEY_BEREPLY,
+    });
+  }
+  return client;
+}
 
-const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
+type Tier = "believe-fast" | "believe-smart" | "believe-deep";
+const DEFAULT_TIER: Tier = "believe-fast";
 const REQUEST_TIMEOUT_MS = 15_000;
 const REPLY_TOOL_NAME = "submit_reply";
 
@@ -32,30 +47,33 @@ Non-negotiable rules, in order of priority:
 You must always respond by calling the ${REPLY_TOOL_NAME} tool — never as
 plain text.`;
 
-const REPLY_TOOL: Anthropic.Tool = {
-  name: REPLY_TOOL_NAME,
-  description:
-    "Submit the reply to send to the customer, or escalate the conversation to a human.",
-  input_schema: {
-    type: "object",
-    properties: {
-      reply: {
-        type: "string",
-        description:
-          "The message to send back to the customer. Use an empty string when escalate is true.",
+const REPLY_TOOL: OpenAI.Chat.Completions.ChatCompletionTool = {
+  type: "function",
+  function: {
+    name: REPLY_TOOL_NAME,
+    description:
+      "Submit the reply to send to the customer, or escalate the conversation to a human.",
+    parameters: {
+      type: "object",
+      properties: {
+        reply: {
+          type: "string",
+          description:
+            "The message to send back to the customer. Use an empty string when escalate is true.",
+        },
+        escalate: {
+          type: "boolean",
+          description:
+            "True if a human should handle this conversation instead of sending `reply`.",
+        },
+        reason: {
+          type: "string",
+          description:
+            "Short machine-readable reason for escalating, e.g. 'opt_out', 'pricing_question', 'complaint', 'uncertain'. Omit when escalate is false.",
+        },
       },
-      escalate: {
-        type: "boolean",
-        description:
-          "True if a human should handle this conversation instead of sending `reply`.",
-      },
-      reason: {
-        type: "string",
-        description:
-          "Short machine-readable reason for escalating, e.g. 'opt_out', 'pricing_question', 'complaint', 'uncertain'. Omit when escalate is false.",
-      },
+      required: ["reply", "escalate"],
     },
-    required: ["reply", "escalate"],
   },
 };
 
@@ -80,7 +98,7 @@ export interface AiReplyInput {
   systemPrompt: string;
   history: Array<{ role: "user" | "assistant"; text: string }>;
   incomingMessage: string;
-  model?: string;
+  tier?: Tier;
 }
 
 export interface AiReplyResult {
@@ -99,9 +117,10 @@ export async function getAiReply(input: AiReplyInput): Promise<AiReplyResult> {
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const messages: Anthropic.MessageParam[] = [
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: "system", content: `${FIXED_SYSTEM_PROMPT}\n\n${input.systemPrompt}` },
       ...input.history.map(
-        (turn): Anthropic.MessageParam => ({
+        (turn): OpenAI.Chat.Completions.ChatCompletionMessageParam => ({
           role: turn.role,
           content: turn.text,
         })
@@ -109,36 +128,36 @@ export async function getAiReply(input: AiReplyInput): Promise<AiReplyResult> {
       { role: "user", content: input.incomingMessage },
     ];
 
-    const response = await client.messages.create(
+    const response = await getClient().chat.completions.create(
       {
-        model: input.model ?? DEFAULT_MODEL,
+        model: input.tier ?? DEFAULT_TIER,
         max_tokens: 1024,
-        system: `${FIXED_SYSTEM_PROMPT}\n\n${input.systemPrompt}`,
         messages,
         tools: [REPLY_TOOL],
-        tool_choice: { type: "tool", name: REPLY_TOOL_NAME },
+        tool_choice: { type: "function", function: { name: REPLY_TOOL_NAME } },
       },
       { signal: controller.signal }
     );
 
-    const usage = {
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-    };
+    const usage = response.usage
+      ? {
+          inputTokens: response.usage.prompt_tokens,
+          outputTokens: response.usage.completion_tokens,
+        }
+      : undefined;
 
-    const toolUse = response.content.find(
-      (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
-    );
+    const toolCall = response.choices[0]?.message?.tool_calls?.[0];
 
-    if (!toolUse) {
-      return { reply: null, escalate: true, reason: "ai_error: no tool_use block in response", usage };
+    if (!toolCall || toolCall.type !== "function") {
+      return { reply: null, escalate: true, reason: "ai_error: no tool call in response", usage };
     }
 
-    const parsed = toolUse.input as {
-      reply?: unknown;
-      escalate?: unknown;
-      reason?: unknown;
-    };
+    let parsed: { reply?: unknown; escalate?: unknown; reason?: unknown };
+    try {
+      parsed = JSON.parse(toolCall.function.arguments);
+    } catch {
+      return { reply: null, escalate: true, reason: "ai_error: malformed tool arguments", usage };
+    }
 
     if (typeof parsed.reply !== "string" || typeof parsed.escalate !== "boolean") {
       return { reply: null, escalate: true, reason: "ai_error: malformed tool input", usage };
