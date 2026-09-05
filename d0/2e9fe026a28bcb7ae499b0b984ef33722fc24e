@@ -1,0 +1,32 @@
+components/brand-mark.tsx
+  s_5e2d6567006582::t_725ae1cd28c237 3-7,16,23
+lib/ai/responder.ts
+  s_5e2d6567006582::t_1e57a0efd5b31b 1-6,21-22,50-73,75,101,120-121,123,133,137,142-147,149,151-152,155-160
+  s_5e2d6567006582::t_ab0e4d979b4a05 131
+  s_5e2d6567006582::t_23cf85ae75ff10 7-19
+.env.example
+  s_5e2d6567006582::t_aa854e7fc833d5 31-35
+components/sidebar.tsx
+  s_5e2d6567006582::t_d43d473613d4f0 81
+  s_5e2d6567006582::t_f96c4e77c80c32 49
+package-lock.json
+  s_5e2d6567006582::t_72f11cfa28c913 21,4342,4947,5093,5103,5148,5161,5935,6006,6038,6136,6222,6235,6251,7371,7850-7886
+package.json
+  s_5e2d6567006582::t_58298f25b09c20 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d02e9fe026a28bcb7ae499b0b984ef33722fc24e",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
