@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 
 export const metadata = {
-  title: "Check your email - OpenReply",
+  title: "Check your email - BeReply",
   description: "A sign-in link was sent to your email.",
 };
 
@@ -10,8 +11,8 @@ export default function VerifyRequestPage() {
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-foreground">
-            OpenReply
+          <h1 className="text-2xl">
+            <BrandMark />
           </h1>
         </div>
 

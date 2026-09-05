@@ -6,18 +6,18 @@ import type { MetadataRoute } from "next";
 // a phone practical.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "OpenReply",
-    short_name: "OpenReply",
+    name: "BeReply",
+    short_name: "BeReply",
     description: "Instagram comment-to-DM automation",
     start_url: "/overview",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#18181b",
-    theme_color: "#18181b",
+    background_color: "#050C29",
+    theme_color: "#0c3bb9",
     icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icon-192", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-512", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

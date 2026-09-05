@@ -1,0 +1,99 @@
+# OpenReply para Contabo — Traefik labels apuntan al network `coolify` (gestionado por Coolify)
+# Coolify Traefik sirve SSL Let's Encrypt automático al ver estos labels.
+
+services:
+  openreply-postgres:
+    image: postgres:16
+    container_name: openreply-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: openreply
+      POSTGRES_USER: openreply
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - openreply-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openreply"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - openreply-internal
+
+  openreply-redis:
+    image: redis:7-alpine
+    container_name: openreply-redis
+    restart: always
+    volumes:
+      - openreply-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - openreply-internal
+
+  openreply-web:
+    build: .
+    container_name: openreply-web
+    restart: always
+    env_file: .env
+    command: sh -c "npm run db:migrate && npm start"
+    depends_on:
+      openreply-postgres:
+        condition: service_healthy
+      openreply-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - openreply-internal
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.openreply.rule=Host(`reply.believe-global.com`)"
+      - "traefik.http.routers.openreply.entrypoints=https"
+      - "traefik.http.routers.openreply.tls=true"
+      - "traefik.http.routers.openreply.tls.certresolver=letsencrypt"
+      - "traefik.http.services.openreply.loadbalancer.server.port=3000"
+
+  openreply-worker:
+    build: .
+    container_name: openreply-worker
+    restart: always
+    env_file: .env
+    command: npm run worker
+    depends_on:
+      openreply-postgres:
+        condition: service_healthy
+      openreply-redis:
+        condition: service_healthy
+    networks:
+      - openreply-internal
+
+  openreply-cron:
+    build: .
+    container_name: openreply-cron
+    restart: always
+    env_file: .env
+    command: sh scripts/cron.sh
+    depends_on:
+      openreply-web:
+        condition: service_healthy
+    networks:
+      - openreply-internal
+
+volumes:
+  openreply-pgdata:
+  openreply-redisdata:
+
+networks:
+  openreply-internal:
+    driver: bridge
+  coolify:
+    external: true
