@@ -26,6 +26,8 @@ import {
   sendPrivateReply,
   sendPrivateReplyWithButton,
   sendPrivateReplyWithLinkButton,
+  sendProductCarousel,
+  type ProductCard,
 } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/oauth";
 import { matchKeywords } from "@/lib/utils/keyword-matcher";
@@ -48,6 +50,7 @@ import {
   parseFlowEdges,
 } from "@/lib/flow/engine";
 import { upsertContact, addTag } from "@/lib/contacts";
+import { searchProducts } from "@/lib/becommerce/mcp-client";
 
 const BACKOFF_DELAYS = [5 * 60 * 1000, 15 * 60 * 1000, 45 * 60 * 1000];
 
@@ -989,8 +992,34 @@ async function getRecentHistory(
   }
 }
 
+// search_products doesn't return an image (the ACP protocol is deliberately
+// minimal), but every real product page does carry a real photo as its
+// og:image — one lightweight fetch per card, never blocks the reply on
+// failure.
+async function fetchProductImage(
+  storefrontUrl: string,
+  handle: string,
+  variantId: string
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `${storefrontUrl}/es/products/${handle}?v_id=${variantId}`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
+    );
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 type SmartReplyResult =
   | { kind: "message"; text: string }
+  | { kind: "products"; products: ProductCard[] }
   | { kind: "escalate"; reason: string }
   | { kind: "none" };
 
@@ -1007,7 +1036,7 @@ async function resolveSmartReply(params: {
     nodes: unknown;
     edges: unknown;
     workspaceId: string;
-    workspace: { knowledgeBase: string | null };
+    workspace: { knowledgeBase: string | null; ecommerceStoreSlug: string | null };
   };
   accessToken: string;
   igUserId: string;
@@ -1087,6 +1116,34 @@ async function resolveSmartReply(params: {
           return { kind: "escalate", reason: ai.reason ?? "ai_escalated" };
         }
         return { kind: "message", text: ai.reply };
+      }
+      if (action.type === "show_products") {
+        const storeSlug = automation.workspace.ecommerceStoreSlug;
+        if (!storeSlug) {
+          return { kind: "escalate", reason: "no_store_linked" };
+        }
+        try {
+          const products = await searchProducts(storeSlug, action.query, 5);
+          if (products.length === 0) {
+            return { kind: "escalate", reason: "no_products_found" };
+          }
+          const storefrontUrl = `https://${storeSlug}.becommerce.believe-global.com`;
+          const cards = await Promise.all(
+            products.map(async (p) => ({
+              title: p.title,
+              subtitle: `${p.price.value.toFixed(2)} ${p.price.currency.toUpperCase()}`,
+              imageUrl:
+                (await fetchProductImage(storefrontUrl, p.handle, p.variant_id)) ??
+                undefined,
+              buttonTitle: "Comprar",
+              buttonUrl: `${storefrontUrl}/es/products/${p.handle}?v_id=${p.variant_id}`,
+            }))
+          );
+          return { kind: "products", products: cards };
+        } catch (error) {
+          console.error("[DM Worker] show_products failed:", formatError(error));
+          return { kind: "escalate", reason: "products_error" };
+        }
       }
     }
     return { kind: "none" };
@@ -1344,6 +1401,13 @@ async function processMessage(job: Job<ProcessMessageJob>): Promise<void> {
             automation.instagramAccount.instagramId,
             senderId,
             smart.text
+          );
+        } else if (smart.kind === "products") {
+          await sendProductCarousel(
+            accessToken,
+            automation.instagramAccount.instagramId,
+            senderId,
+            smart.products
           );
         } else {
           await sendRevealDirectMessage(

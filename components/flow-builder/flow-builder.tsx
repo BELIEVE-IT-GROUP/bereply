@@ -40,6 +40,7 @@ const nodeTypes: NodeTypes = {
   send_dm: FlowNodeCard,
   add_tag: FlowNodeCard,
   ai_reply: FlowNodeCard,
+  show_products: FlowNodeCard,
 };
 
 const PALETTE: { type: FlowNodeType; label: string }[] = [
@@ -47,6 +48,7 @@ const PALETTE: { type: FlowNodeType; label: string }[] = [
   { type: "send_dm", label: "Send DM" },
   { type: "add_tag", label: "Add tag" },
   { type: "ai_reply", label: "AI reply" },
+  { type: "show_products", label: "Show products" },
 ];
 
 const NEW_NODE_DATA: Record<FlowNodeType, FlowNodeData> = {
@@ -54,6 +56,7 @@ const NEW_NODE_DATA: Record<FlowNodeType, FlowNodeData> = {
   send_dm: { message: "" },
   add_tag: { tag: "" },
   ai_reply: { systemPrompt: "" },
+  show_products: { query: "" },
 };
 
 const FIELD_LABELS: Record<(typeof CONDITION_FIELDS)[number], string> = {
@@ -348,6 +351,21 @@ function NodeInspector({
             placeholder="Answer as our support team. Keep it under two sentences."
             className={`${inputClass} resize-y`}
           />
+        </Field>
+      )}
+
+      {node.type === "show_products" && (
+        <Field label="Search">
+          <input
+            value={readString(node.data.query)}
+            onChange={(e) => onChange({ query: e.target.value })}
+            placeholder="Leave empty to show the whole catalog"
+            className={inputClass}
+          />
+          <p className="mt-1.5 text-xs text-muted">
+            Sends up to 5 matching products as tappable cards, pulled live
+            from the store connected in Settings → Ecommerce integration.
+          </p>
         </Field>
       )}
     </div>

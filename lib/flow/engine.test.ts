@@ -105,6 +105,18 @@ describe("runFlow", () => {
     expect(runFlow({ nodes, edges, context })).toEqual([]);
   });
 
+  it("show_products passes the query through, empty meaning the whole catalog", () => {
+    const nodes = [node("a", "show_products", { query: "chaquetas" })];
+    expect(runFlow({ nodes, edges: [], context })).toEqual([
+      { type: "show_products", query: "chaquetas" },
+    ]);
+
+    const catalogNodes = [node("b", "show_products", {})];
+    expect(runFlow({ nodes: catalogNodes, edges: [], context })).toEqual([
+      { type: "show_products", query: "" },
+    ]);
+  });
+
   it("honours startNodeId over the detected root", () => {
     const nodes = [
       node("a", "send_dm", { message: "skipped" }),

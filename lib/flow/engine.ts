@@ -12,6 +12,7 @@ export const FLOW_NODE_TYPES = [
   "send_dm",
   "add_tag",
   "ai_reply",
+  "show_products",
 ] as const;
 
 export type FlowNodeType = (typeof FLOW_NODE_TYPES)[number];
@@ -36,6 +37,7 @@ export type FlowAction =
   | { type: "send_dm"; message: string }
   | { type: "add_tag"; tag: string }
   | { type: "ai_reply"; systemPrompt: string }
+  | { type: "show_products"; query: string }
   | { type: "escalate"; reason: string };
 
 export const CONDITION_FIELDS = ["tags", "incomingText"] as const;
@@ -129,6 +131,12 @@ export function runFlow(input: RunFlowInput): FlowAction[] {
       case "ai_reply": {
         const systemPrompt = readString(node.data.systemPrompt);
         if (systemPrompt) actions.push({ type: "ai_reply", systemPrompt });
+        break;
+      }
+      case "show_products": {
+        // Empty query is valid here — it means "show the whole catalog",
+        // unlike every other node type where an empty field means unconfigured.
+        actions.push({ type: "show_products", query: readString(node.data.query) });
         break;
       }
       default:
