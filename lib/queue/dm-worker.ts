@@ -17,6 +17,8 @@ import {
   RateLimitError,
   TokenExpiredError,
   getUserFollowStatus,
+  getConversations,
+  getConversationMessages,
   sendCommentReply,
   sendDirectMessage,
   sendDirectMessageWithButton,
@@ -38,6 +40,14 @@ import {
   renderMessageWithTracking,
   renderMessageWithoutLink,
 } from "@/lib/tracking/message";
+import { getAiReply } from "@/lib/ai/responder";
+import {
+  runFlow,
+  hasFlow,
+  parseFlowNodes,
+  parseFlowEdges,
+} from "@/lib/flow/engine";
+import { upsertContact, addTag } from "@/lib/contacts";
 
 const BACKOFF_DELAYS = [5 * 60 * 1000, 15 * 60 * 1000, 45 * 60 * 1000];
 
@@ -943,6 +953,132 @@ async function processFollowUp(job: Job<ProcessFollowUpJob>): Promise<void> {
  * comments) and delivers the reveal directly, honouring the follow gate.
  * Dedup is per inbound message id, so each message triggers at most one reply.
  */
+/**
+ * The DM conversation with `otherUserId`, oldest first, as {role, text} pairs
+ * for the AI responder. Two Graph API calls (list conversations, then that
+ * conversation's messages) because the list endpoint only returns a
+ * one-message preview per thread. Never throws — a history fetch failure
+ * degrades to "no context" rather than blocking the reply.
+ */
+async function getRecentHistory(
+  accessToken: string,
+  igUserId: string,
+  otherUserId: string
+): Promise<Array<{ role: "user" | "assistant"; text: string }>> {
+  try {
+    const conversations = await getConversations(accessToken, igUserId);
+    const thread = conversations.find((conversation) =>
+      conversation.participants?.data?.some((p) => p.id === otherUserId)
+    );
+    if (!thread) return [];
+
+    const messages = await getConversationMessages(accessToken, thread.id);
+    return messages
+      .filter((m): m is typeof m & { message: string } => Boolean(m.message))
+      .reverse()
+      .map((m) => ({
+        role: m.from?.id === otherUserId ? ("user" as const) : ("assistant" as const),
+        text: m.message,
+      }));
+  } catch (error) {
+    console.error(
+      "[DM Worker] Failed to fetch conversation history:",
+      formatError(error)
+    );
+    return [];
+  }
+}
+
+type SmartReplyResult =
+  | { kind: "message"; text: string }
+  | { kind: "escalate"; reason: string }
+  | { kind: "none" };
+
+/**
+ * Computes what to send for an aiEnabled or flow-configured automation.
+ * "none" means neither is configured — the caller falls back to the plain
+ * automation.dmMessage path unchanged. Never throws: any failure resolves to
+ * escalate rather than risk sending something wrong.
+ */
+async function resolveSmartReply(params: {
+  automation: {
+    aiEnabled: boolean;
+    aiConfig: unknown;
+    nodes: unknown;
+    edges: unknown;
+  };
+  accessToken: string;
+  igUserId: string;
+  senderId: string;
+  incomingText: string;
+  contactId: string | null;
+  tags: string[];
+}): Promise<SmartReplyResult> {
+  const { automation, accessToken, igUserId, senderId, incomingText, contactId, tags } =
+    params;
+
+  const applyTag = async (tag: string) => {
+    if (!contactId) return;
+    try {
+      await addTag(contactId, tag);
+    } catch (error) {
+      console.error("[DM Worker] addTag failed:", formatError(error));
+    }
+  };
+
+  if (hasFlow(automation.nodes)) {
+    const nodes = parseFlowNodes(automation.nodes);
+    const edges = parseFlowEdges(automation.edges);
+    const actions = runFlow({
+      nodes,
+      edges,
+      context: { incomingText, tags },
+    });
+
+    for (const action of actions) {
+      if (action.type === "escalate") {
+        return { kind: "escalate", reason: action.reason };
+      }
+      if (action.type === "add_tag") {
+        await applyTag(action.tag);
+        continue;
+      }
+      if (action.type === "send_dm") {
+        return { kind: "message", text: action.message };
+      }
+      if (action.type === "ai_reply") {
+        const history = await getRecentHistory(accessToken, igUserId, senderId);
+        const ai = await getAiReply({
+          systemPrompt: action.systemPrompt,
+          history,
+          incomingMessage: incomingText,
+        });
+        if (ai.escalate || !ai.reply) {
+          return { kind: "escalate", reason: ai.reason ?? "ai_escalated" };
+        }
+        return { kind: "message", text: ai.reply };
+      }
+    }
+    return { kind: "none" };
+  }
+
+  if (automation.aiEnabled) {
+    const aiConfig = (automation.aiConfig ?? {}) as { systemPrompt?: string };
+    const history = await getRecentHistory(accessToken, igUserId, senderId);
+    const ai = await getAiReply({
+      systemPrompt: aiConfig.systemPrompt ?? "",
+      history,
+      incomingMessage: incomingText,
+    });
+    if (ai.escalate || !ai.reply) {
+      return { kind: "escalate", reason: ai.reason ?? "ai_escalated" };
+    }
+    return { kind: "message", text: ai.reply };
+  }
+
+  return { kind: "none" };
+}
+
 async function processMessage(job: Job<ProcessMessageJob>): Promise<void> {
   const { instagramAccountId, messageId, messageText, senderId } = job.data;
 
@@ -1092,6 +1228,68 @@ async function processMessage(job: Job<ProcessMessageJob>): Promise<void> {
       continue;
     }
 
+    // AI/flow campaigns only kick in once the follow gate is cleared — a
+    // not-yet-follower gets the same follow prompt as a legacy campaign,
+    // never an AI reply or a flow action.
+    let smart: SmartReplyResult = { kind: "none" };
+    if (!sendFollowPrompt && (automation.aiEnabled || hasFlow(automation.nodes))) {
+      const contact = await upsertContact({
+        workspaceId: automation.workspaceId,
+        instagramAccountId: automation.instagramAccountId,
+        igUserId: senderId,
+        username: commenterName ?? undefined,
+      }).catch((error) => {
+        console.error("[DM Worker] upsertContact failed:", formatError(error));
+        return null;
+      });
+
+      smart = await resolveSmartReply({
+        automation,
+        accessToken,
+        igUserId: automation.instagramAccount.instagramId,
+        senderId,
+        incomingText: messageText,
+        contactId: contact?.id ?? null,
+        tags: contact?.tags ?? [],
+      });
+    }
+
+    if (smart.kind === "escalate") {
+      await releaseWorkspaceDMReservation(
+        automation.workspaceId,
+        usage.periodStart
+      );
+      await prisma.dmLog.upsert({
+        where: {
+          automationId_commentId: {
+            automationId: automation.id,
+            commentId: dedupeId,
+          },
+        },
+        create: {
+          ...logBase,
+          commenterName,
+          status: "SKIPPED_ESCALATED",
+          errorMessage: smart.reason,
+        },
+        update: { status: "SKIPPED_ESCALATED", errorMessage: smart.reason },
+      });
+      await prisma.operationalEvent
+        .create({
+          data: {
+            workspaceId: automation.workspaceId,
+            source: "WORKER",
+            level: "WARNING",
+            message: `Escalated to human: conversation with ${
+              commenterName ?? senderId
+            }`,
+            payload: { automationId: automation.id, senderId, reason: smart.reason },
+          },
+        })
+        .catch(() => {});
+      continue;
+    }
+
     try {
       if (sendFollowPrompt) {
         const promptText = renderMessageWithoutLink({
@@ -1109,17 +1307,26 @@ async function processMessage(job: Job<ProcessMessageJob>): Promise<void> {
           `followcheck:${automation.id}`
         );
       } else {
-        await sendRevealDirectMessage(
-          accessToken,
-          automation,
-          senderId,
-          commenterName,
-          "message trigger"
-        );
+        if (smart.kind === "message") {
+          await sendDirectMessage(
+            accessToken,
+            automation.instagramAccount.instagramId,
+            senderId,
+            smart.text
+          );
+        } else {
+          await sendRevealDirectMessage(
+            accessToken,
+            automation,
+            senderId,
+            commenterName,
+            "message trigger"
+          );
+        }
 
-        // The link has been delivered, so the appreciation follow-up applies
-        // here exactly as it does after a button tap. Not scheduled behind the
-        // follow prompt — no link went out yet in that branch.
+        // The link/reply has been delivered, so the appreciation follow-up
+        // applies here exactly as it does after a button tap. Not scheduled
+        // behind the follow prompt — no message went out yet in that branch.
         if (automation.followUpEnabled && automation.followUpMessage?.trim()) {
           await getDMQueue().add(
             FOLLOWUP_JOB_NAME,

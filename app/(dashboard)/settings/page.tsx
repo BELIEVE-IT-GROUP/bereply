@@ -45,11 +45,20 @@ interface WorkspaceMembersData {
   }>;
 }
 
+interface EcommerceSettings {
+  slug: string | null;
+  hasSecret: boolean;
+  webhookUrl: string;
+}
+
 export default function SettingsPage() {
   const [data, setData] = useState<SettingsData | null>(null);
   const [membersData, setMembersData] = useState<WorkspaceMembersData | null>(
     null
   );
+  const [ecommerce, setEcommerce] = useState<EcommerceSettings | null>(null);
+  const [ecommerceSlugInput, setEcommerceSlugInput] = useState("");
+  const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -60,13 +69,42 @@ export default function SettingsPage() {
     Promise.all([
       fetch("/api/dashboard/stats").then((res) => res.json()),
       fetch("/api/workspace/members").then((res) => res.json()),
+      fetch("/api/settings/ecommerce").then((res) => res.json()),
     ])
-      .then(([statsPayload, membersPayload]) => {
+      .then(([statsPayload, membersPayload, ecommercePayload]) => {
         if (statsPayload.success) setData(statsPayload.data);
         if (membersPayload.success) setMembersData(membersPayload.data);
+        if (ecommercePayload.success) {
+          setEcommerce(ecommercePayload.data);
+          setEcommerceSlugInput(ecommercePayload.data.slug ?? "");
+        }
       })
       .finally(() => setLoading(false));
   }, []);
+
+  async function generateEcommerceSecret() {
+    setBusy("ecommerce");
+    setRevealedSecret(null);
+    const res = await fetch("/api/settings/ecommerce", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        ecommerceSlugInput.trim() ? { slug: ecommerceSlugInput.trim() } : {}
+      ),
+    });
+    const payload = await res.json();
+    setBusy(null);
+    if (payload.success) {
+      setRevealedSecret(payload.data.secret);
+      setEcommerce((prev) =>
+        prev
+          ? { ...prev, hasSecret: true, slug: ecommerceSlugInput.trim() || prev.slug }
+          : prev
+      );
+    } else {
+      alert(payload.error ?? "Could not generate secret");
+    }
+  }
 
   async function refreshMembers() {
     const res = await fetch("/api/workspace/members");
@@ -334,6 +372,65 @@ export default function SettingsPage() {
           <span className="text-sm font-semibold text-foreground">
             {data?.workspace.dmsSentThisPeriod ?? 0}
           </span>
+        </div>
+      </section>
+
+      <section className="panel rounded p-4 sm:p-6">
+        <h2 className="text-base font-semibold mb-1">Ecommerce integration</h2>
+        <p className="text-xs text-muted mb-6">
+          Connect a BeCommerce (Medusa) store to log its order events here.
+        </p>
+
+        <div className="space-y-3 max-w-md">
+          <div>
+            <label className="block text-xs text-muted mb-1">
+              Store slug
+            </label>
+            <input
+              value={ecommerceSlugInput}
+              onChange={(e) => setEcommerceSlugInput(e.target.value)}
+              placeholder="your-store-slug"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-muted mb-1">
+              Webhook URL
+            </label>
+            <input
+              readOnly
+              value={ecommerce?.webhookUrl ?? ""}
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-muted"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={generateEcommerceSecret}
+            disabled={busy === "ecommerce" || !ecommerceSlugInput.trim()}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {ecommerce?.hasSecret ? "Regenerate secret" : "Generate secret"}
+          </button>
+
+          {revealedSecret && (
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-xs text-muted mb-1">
+                Copy this now — it won&apos;t be shown again. Set it as
+                BEREPLY_WEBHOOK_SECRET on the BeCommerce side.
+              </p>
+              <code className="block break-all text-xs text-foreground">
+                {revealedSecret}
+              </code>
+            </div>
+          )}
+
+          {!revealedSecret && ecommerce?.hasSecret && (
+            <p className="text-xs text-muted">
+              A secret is already set. Regenerating replaces it immediately.
+            </p>
+          )}
         </div>
       </section>
     </div>

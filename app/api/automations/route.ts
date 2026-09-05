@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentWorkspaceId } from "@/lib/auth";
 import { prisma } from "@/lib/db/client";
+import { Prisma } from "@/app/generated/prisma/client";
 import { calculateCtr, normalizeTopKeywords } from "@/lib/tracking/analytics";
 import { buildTrackedUrl } from "@/lib/tracking/message";
 import { generateTrackedLinkSlug } from "@/lib/tracking/server";
@@ -60,6 +61,11 @@ const createAutomationSchema = z
     secondaryButtonLabel: z.string().max(20).optional().nullable(),
     isActive: z.boolean().optional().default(true),
     wholeWordMatch: z.boolean().optional().default(true),
+    aiEnabled: z.boolean().optional().default(false),
+    aiConfig: z
+      .object({ systemPrompt: z.string().max(4000) })
+      .optional()
+      .nullable(),
   })
   // A campaign must target a specific post, any post, or the next reel.
   .refine(
@@ -106,6 +112,11 @@ const updateAutomationSchema = z.object({
   publicReplyMessages: z.array(z.string().max(1000)).max(10).optional(),
   isActive: z.boolean().optional(),
   wholeWordMatch: z.boolean().optional(),
+  aiEnabled: z.boolean().optional(),
+  aiConfig: z
+    .object({ systemPrompt: z.string().max(4000) })
+    .optional()
+    .nullable(),
   reportShareEnabled: z.boolean().optional(),
   // Empty string clears the tracked link; a URL updates/creates it; undefined
   // leaves it unchanged.
@@ -427,6 +438,8 @@ export async function POST(request: NextRequest) {
         : null,
       isActive: parsed.data.isActive,
       wholeWordMatch: parsed.data.wholeWordMatch,
+      aiEnabled: parsed.data.aiEnabled,
+      aiConfig: parsed.data.aiConfig ?? undefined,
       workspaceId,
       instagramAccountId: instagramAccount.id,
       reportShareSlug: generateReportShareSlug(),
@@ -538,7 +551,13 @@ export async function PATCH(request: NextRequest) {
 
   const updated = await prisma.automation.update({
     where: { id: automationId },
-    data: automationData,
+    data: {
+      ...automationData,
+      aiConfig:
+        automationData.aiConfig === null
+          ? Prisma.JsonNull
+          : automationData.aiConfig,
+    },
   });
 
   // Update, create, or clear the campaign's primary tracked link when a
