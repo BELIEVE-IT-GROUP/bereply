@@ -46,7 +46,7 @@ export default function Sidebar({
 
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-dvh w-64 max-w-[85vw] shrink-0 bg-[#050C29] border-r border-white/10 flex flex-col
+          fixed top-0 left-0 z-50 h-dvh w-64 max-w-[85vw] shrink-0 bg-[#0c3bb9] border-r border-white/10 flex flex-col
           transition-transform duration-200 ease-out
           lg:h-full lg:translate-x-0 lg:static lg:z-auto
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -78,7 +78,7 @@ export default function Sidebar({
                   ${
                     isActive
                       ? "bg-white/10 text-white font-medium"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                      : "text-white/60 hover:text-[#00aaff] hover:bg-white/5"
                   }
                 `}
               >
