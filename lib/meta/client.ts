@@ -403,6 +403,58 @@ export async function sendDirectMessageWithLinkButton(
   return handleResponse(response);
 }
 
+export interface ProductCard {
+  title: string;
+  subtitle: string;
+  imageUrl?: string;
+  buttonTitle: string;
+  buttonUrl: string;
+}
+
+/**
+ * Send a product carousel — Instagram's "generic template" (same mechanism
+ * Messenger has had for years): up to 10 cards, each with an image, a title,
+ * a subtitle, and one web_url button. Used for "show products" flow nodes.
+ */
+export async function sendProductCarousel(
+  accessToken: string,
+  instagramAccountId: string,
+  userId: string,
+  products: ProductCard[]
+): Promise<{ recipient_id: string; message_id: string }> {
+  const elements = products.slice(0, 10).map((p) => ({
+    title: p.title.slice(0, 80),
+    subtitle: p.subtitle.slice(0, 80),
+    ...(p.imageUrl ? { image_url: p.imageUrl } : {}),
+    default_action: { type: "web_url", url: p.buttonUrl },
+    buttons: [
+      { type: "web_url", url: p.buttonUrl, title: p.buttonTitle.slice(0, 20) },
+    ],
+  }));
+
+  const response = await fetch(
+    `${instagramGraphBase()}/${instagramAccountId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        recipient: { id: userId },
+        message: {
+          attachment: {
+            type: "template",
+            payload: { template_type: "generic", elements },
+          },
+        },
+      }),
+    }
+  );
+
+  return handleResponse(response);
+}
+
 export async function sendCommentReply(
   accessToken: string,
   commentId: string,

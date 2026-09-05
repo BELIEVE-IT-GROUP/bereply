@@ -3,7 +3,7 @@
 /**
  * Flow Node
  *
- * One card on the flow canvas. Registered under all four flow node types, so
+ * One card on the flow canvas. Registered under all flow node types, so
  * the xyflow node `type` is the domain type — no extra `data.nodeType` mirror
  * to keep in sync with what the engine reads.
  */
@@ -55,6 +55,15 @@ function AiReplyIcon() {
   return (
     <Icon>
       <path d="M8 1.5 9.4 6l4.6 1.4L9.4 8.8 8 13.4 6.6 8.8 2 7.4 6.6 6 8 1.5Z" />
+    </Icon>
+  );
+}
+
+function ShowProductsIcon() {
+  return (
+    <Icon>
+      <path d="M4 5.5h8l-.7 7.5a1 1 0 0 1-1 .9H5.7a1 1 0 0 1-1-.9L4 5.5Z" />
+      <path d="M6 5.5V4a2 2 0 0 1 4 0v1.5" />
     </Icon>
   );
 }
@@ -117,6 +126,16 @@ const NODE_CONFIG: Record<FlowNodeType, NodeConfig> = {
     tone: "text-foreground",
     icon: AiReplyIcon,
     subtitle: (data) => readString(data.systemPrompt) || "Write the system prompt",
+  },
+  show_products: {
+    label: "Show products",
+    bar: "border-l-accent",
+    tone: "text-accent",
+    icon: ShowProductsIcon,
+    subtitle: (data) => {
+      const query = readString(data.query);
+      return query ? `Search: "${query}"` : "Whole catalog";
+    },
   },
 };
 
