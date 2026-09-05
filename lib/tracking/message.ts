@@ -51,14 +51,26 @@ export function renderMessageWithoutLink({
     .trim();
 }
 
-export function buildTrackedUrl(slug: string, baseUrl?: string) {
+/**
+ * `contactId` personaliza el link (query param `c`) para que /r/[slug] pueda
+ * atribuir el click a un Contact y reenviarlo al destino (BeCommerce) como
+ * bc_ref — asi un pedido se puede vincular al contacto de Instagram que lo
+ * origino. SOLO pasar contactId en canales privados (DM, private reply): la
+ * respuesta publica a un comentario NUNCA debe llevar el id de nadie.
+ */
+export function buildTrackedUrl(
+  slug: string,
+  baseUrl?: string,
+  contactId?: string | null
+) {
   const resolvedBaseUrl =
     baseUrl ??
     (typeof window !== "undefined"
       ? window.location.origin
       : process.env.NEXTAUTH_URL ?? "http://localhost:3000");
 
-  return `${resolvedBaseUrl.replace(/\/$/, "")}/r/${slug}`;
+  const url = `${resolvedBaseUrl.replace(/\/$/, "")}/r/${slug}`;
+  return contactId ? `${url}?c=${encodeURIComponent(contactId)}` : url;
 }
 
 export function renderMessageWithTracking({
@@ -66,18 +78,21 @@ export function renderMessageWithTracking({
   commenterName,
   trackedLinks,
   baseUrl,
+  contactId,
 }: {
   message: string;
   commenterName?: string | null;
   trackedLinks?: MessageTrackedLink[];
   baseUrl?: string;
+  /** Ver nota en buildTrackedUrl — solo canales privados. */
+  contactId?: string | null;
 }) {
   let rendered = message.replace(/\{username\}/gi, commenterName ?? "there");
   const primaryLink = trackedLinks?.[0];
 
   if (!primaryLink) return rendered;
 
-  const trackedUrl = buildTrackedUrl(primaryLink.slug, baseUrl);
+  const trackedUrl = buildTrackedUrl(primaryLink.slug, baseUrl, contactId);
 
   if (/\{link\}/i.test(rendered)) {
     return rendered.replace(/\{link\}/gi, trackedUrl);

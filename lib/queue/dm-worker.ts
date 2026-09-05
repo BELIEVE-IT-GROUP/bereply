@@ -91,12 +91,14 @@ type WorkerTrackedLink = {
  * `linkButtonLabel`; each additional link uses its own stored `label`. Capped at
  * Meta's 3-button limit for a button template.
  */
+/** contactId: ver nota en buildTrackedUrl (lib/tracking/message.ts) — solo canales privados. */
 function buildLinkButtons(
   trackedLinks: WorkerTrackedLink[],
-  primaryLabel: string | null
+  primaryLabel: string | null,
+  contactId?: string | null
 ): { title: string; url: string }[] {
   return trackedLinks.slice(0, 3).map((link, index) => ({
-    url: buildTrackedUrl(link.slug),
+    url: buildTrackedUrl(link.slug, undefined, contactId),
     title: (index === 0 ? primaryLabel : link.label) || link.label || "Open link",
   }));
 }
@@ -104,22 +106,27 @@ function buildLinkButtons(
 /**
  * Fallback text when Meta rejects the button template: render the primary link
  * inline, then append any extra tracked URLs on their own lines so no link is
- * lost.
+ * lost. contactId: ver nota en buildTrackedUrl — solo canales privados.
  */
 function buildInlineLinkFallback(
   message: string,
   commenterName: string | null | undefined,
   trackedLinks: WorkerTrackedLink[],
-  bodyText: string
+  bodyText: string,
+  contactId?: string | null
 ): string {
   const base =
-    renderMessageWithTracking({ message, commenterName, trackedLinks }) ||
+    renderMessageWithTracking({ message, commenterName, trackedLinks, contactId }) ||
     bodyText;
-  const extraUrls = trackedLinks.slice(1).map((link) => buildTrackedUrl(link.slug));
+  const extraUrls = trackedLinks
+    .slice(1)
+    .map((link) => buildTrackedUrl(link.slug, undefined, contactId));
   return extraUrls.length > 0 ? `${base}\n${extraUrls.join("\n")}` : base;
 }
 
 type RevealAutomation = {
+  workspaceId: string;
+  instagramAccountId: string;
   dmMessage: string;
   linkButtonLabel: string | null;
   trackedLinks: WorkerTrackedLink[];
@@ -130,6 +137,12 @@ type RevealAutomation = {
  * Deliver a campaign's reveal message as a direct message. Shared by the
  * button-tap (postback) path and the DM keyword-trigger path — both already
  * have an open conversation with the user, so neither uses a private reply.
+ *
+ * Resolves (or creates) the Contact for `userId` so any tracked link gets
+ * personalized (?c=<contactId>) — that id is what lets /r/[slug] later
+ * attribute an order to this Instagram contact. Never blocks the send: a
+ * failed lookup just falls back to a generic, unpersonalized link, same as
+ * before this existed.
  */
 async function sendRevealDirectMessage(
   accessToken: string,
@@ -138,6 +151,17 @@ async function sendRevealDirectMessage(
   commenterName: string | null,
   context: string
 ): Promise<void> {
+  const contact = await upsertContact({
+    workspaceId: automation.workspaceId,
+    instagramAccountId: automation.instagramAccountId,
+    igUserId: userId,
+    username: commenterName ?? undefined,
+  }).catch((error) => {
+    console.error(`[DM Worker] upsertContact failed in ${context}:`, formatError(error));
+    return null;
+  });
+  const contactId = contact?.id ?? null;
+
   if (automation.trackedLinks.length === 0) {
     await sendDirectMessage(
       accessToken,
@@ -160,7 +184,8 @@ async function sendRevealDirectMessage(
     }) || "Here's your link:";
   const buttons = buildLinkButtons(
     automation.trackedLinks,
-    automation.linkButtonLabel
+    automation.linkButtonLabel,
+    contactId
   );
 
   try {
@@ -189,7 +214,8 @@ async function sendRevealDirectMessage(
           automation.dmMessage,
           commenterName,
           automation.trackedLinks,
-          bodyText
+          bodyText,
+          contactId
         )
       );
     } catch {
@@ -591,6 +617,20 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
           `followcheck:${automation.id}`
         );
       } else if (automation.trackedLinks.length > 0) {
+        // Private reply, same channel as sendRevealDirectMessage: safe to
+        // personalize. Never blocks the send — a failed lookup just falls
+        // back to a generic link.
+        const contact = await upsertContact({
+          workspaceId: automation.workspaceId,
+          instagramAccountId: automation.instagramAccountId,
+          igUserId: commenterId,
+          username: commenterName ?? undefined,
+        }).catch((error) => {
+          console.error("[DM Worker] upsertContact failed in private reply:", formatError(error));
+          return null;
+        });
+        const contactId = contact?.id ?? null;
+
         // Try button template first; if Meta rejects it, fall back to inline links.
         const bodyText =
           renderMessageWithoutLink({
@@ -599,7 +639,8 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
           }) || "Here's your link:";
         const buttons = buildLinkButtons(
           automation.trackedLinks,
-          automation.linkButtonLabel
+          automation.linkButtonLabel,
+          contactId
         );
 
         try {
@@ -624,7 +665,8 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
             automation.dmMessage,
             commenterName,
             automation.trackedLinks,
-            bodyText
+            bodyText,
+            contactId
           );
           try {
             await sendPrivateReply(

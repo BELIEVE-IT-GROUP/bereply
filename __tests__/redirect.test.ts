@@ -8,6 +8,9 @@ const { mockPrisma } = vi.hoisted(() => ({
     linkClick: {
       create: vi.fn(),
     },
+    contact: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -60,6 +63,64 @@ describe("tracked link redirect route", () => {
         userAgent: "vitest",
         referrer: "https://instagram.com/",
       }),
+    });
+  });
+
+  it("attributes the click to a same-workspace contact and forwards bc_ref", async () => {
+    mockPrisma.trackedLink.findUnique.mockResolvedValue({
+      id: "link_123",
+      workspaceId: "workspace_123",
+      automationId: "automation_123",
+      destinationUrl: "https://example.com/offer",
+      automation: { instagramAccountId: "instagram_account_123" },
+    });
+    mockPrisma.contact.findUnique.mockResolvedValue({
+      id: "contact_1",
+      workspaceId: "workspace_123",
+    });
+    mockPrisma.linkClick.create.mockResolvedValue({});
+
+    const response = await GET(
+      new Request("https://manychat-alternative.com/r/abc123?c=contact_1") as Parameters<
+        typeof GET
+      >[0],
+      { params: Promise.resolve({ slug: "abc123" }) }
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://example.com/offer?bc_ref=contact_1"
+    );
+    expect(mockPrisma.linkClick.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ contactId: "contact_1" }),
+    });
+  });
+
+  it("ignores a contact id from a different workspace: no attribution, no bc_ref", async () => {
+    mockPrisma.trackedLink.findUnique.mockResolvedValue({
+      id: "link_123",
+      workspaceId: "workspace_123",
+      automationId: "automation_123",
+      destinationUrl: "https://example.com/offer",
+      automation: { instagramAccountId: "instagram_account_123" },
+    });
+    // El contacto existe, pero es de OTRO workspace -- no hay que confiar en un
+    // "c" manipulado a mano que apunte a un contacto ajeno.
+    mockPrisma.contact.findUnique.mockResolvedValue({
+      id: "contact_evil",
+      workspaceId: "workspace_ajeno",
+    });
+    mockPrisma.linkClick.create.mockResolvedValue({});
+
+    const response = await GET(
+      new Request(
+        "https://manychat-alternative.com/r/abc123?c=contact_evil"
+      ) as Parameters<typeof GET>[0],
+      { params: Promise.resolve({ slug: "abc123" }) }
+    );
+
+    expect(response.headers.get("location")).toBe("https://example.com/offer");
+    expect(mockPrisma.linkClick.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ contactId: null }),
     });
   });
 
