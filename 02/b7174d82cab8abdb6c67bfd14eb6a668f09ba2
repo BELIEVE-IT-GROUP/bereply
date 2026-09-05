@@ -1,0 +1,44 @@
+lib/queue/dm-worker.ts
+  s_5e2d6567006582::t_c70459566ad601 1009-1010,1031-1055
+  s_5e2d6567006582::t_5b6cf03d77c87a 1081,1085,1099,1103
+  s_5e2d6567006582::t_49b9671b16719c 43
+  s_5e2d6567006582::t_45ecf872401079 1056-1057
+lib/ai/responder.ts
+  s_5e2d6567006582::t_272ef736191af9 90
+  s_5e2d6567006582::t_951778f42c75c5 124-128,134,144,151
+app/api/dashboard/stats/route.ts
+  s_5e2d6567006582::t_719c274705a077 59
+components/campaign-builder.tsx
+  s_5e2d6567006582::t_5ad765bb7f3ccb 1049-1058
+  s_5e2d6567006582::t_365fb63aeb27fb 528-563
+  s_5e2d6567006582::t_c1062cb6107886 443-452
+  s_5e2d6567006582::t_5e9c0ae3cf2f80 396-397,399,401-402,404-406,408-409
+app/api/settings/knowledge/route.ts
+  s_5e2d6567006582::t_188d5a196d9039 1-63
+prisma/schema.prisma
+  s_5e2d6567006582::t_7c10d3eb947950 84-88
+app/(dashboard)/settings/page.tsx
+  s_5e2d6567006582::t_a68f4b62c3f002 11
+  s_5e2d6567006582::t_8a1287e8d42c4f 63-64
+  s_5e2d6567006582::t_e7b94e9e065ad5 400-453
+  s_5e2d6567006582::t_aa3b1fa5dfa9fc 76,78,85-87,92-107
+  s_5e2d6567006582::t_638e484716ae6a 108
+prisma/migrations/20260905120000_add_workspace_knowledge_base/migration.sql
+  s_5e2d6567006582::t_17e07957ca629c 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "02b7174d82cab8abdb6c67bfd14eb6a668f09ba2",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
