@@ -405,18 +405,28 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
     return null;
   }
 
-  function buildPayload(activeValue: boolean) {
+  function buildPayload(
+    activeValue: boolean,
+    overrides?: {
+      triggerScope?: TriggerScope;
+      matchMode?: MatchMode;
+      dmMessage?: string;
+    }
+  ) {
+    const effectiveTriggerScope = overrides?.triggerScope ?? triggerScope;
+    const effectiveMatchMode = overrides?.matchMode ?? matchMode;
+    const effectiveDmMessage = overrides?.dmMessage ?? dmMessage;
     return {
       name: name.trim() || `Campaign for @${username}`,
       instagramAccountId: selectedAccountId,
-      postId: triggerScope === "specific" ? postId : null,
-      postUrl: triggerScope === "specific" ? postUrl : null,
-      matchAnyPost: triggerScope === "any",
-      pendingNextReel: triggerScope === "next",
-      matchAnyWord: matchMode === "any",
-      keywords: matchMode === "any" ? [] : keywords,
+      postId: effectiveTriggerScope === "specific" ? postId : null,
+      postUrl: effectiveTriggerScope === "specific" ? postUrl : null,
+      matchAnyPost: effectiveTriggerScope === "any",
+      pendingNextReel: effectiveTriggerScope === "next",
+      matchAnyWord: effectiveMatchMode === "any",
+      keywords: effectiveMatchMode === "any" ? [] : keywords,
       dmTriggerEnabled,
-      dmMessage,
+      dmMessage: effectiveDmMessage,
       aiEnabled,
       aiConfig,
       openingDmEnabled,
@@ -535,16 +545,42 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
       return;
     }
 
-    const validationMessage = validationError();
-    if (validationMessage) return setError(validationMessage);
+    // A flow decides what actually gets sent, so there's no real use in
+    // making someone pick a specific post/keyword or hand-write a fallback
+    // message before they've even built one. Only what the automation
+    // structurally needs (an account) and what the person explicitly opted
+    // into (the opening DM) still block here.
+    if (!selectedAccountId) return setError("Connect an Instagram account first.");
+    if (openingDmEnabled && (!openingDmMessage.trim() || !openingDmButtonLabel.trim()))
+      return setError("Your opening DM needs a message and a button label.");
     setError(null);
+
+    const effectiveTriggerScope: TriggerScope =
+      triggerScope === "specific" && !postId ? "any" : triggerScope;
+    const effectiveMatchMode: MatchMode =
+      matchMode === "specific" && keywords.length === 0 ? "any" : matchMode;
+    const effectiveDmMessage =
+      dmMessage.trim() || "Thanks for reaching out — we'll get right back to you!";
+
+    // Reflect what's actually being saved so re-opening this campaign in
+    // Edit doesn't show a trigger that looks unset.
+    setTriggerScope(effectiveTriggerScope);
+    setMatchMode(effectiveMatchMode);
+    if (!dmMessage.trim()) setDmMessage(effectiveDmMessage);
+
     setSaving(true);
 
     try {
       const res = await fetch("/api/automations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload(false)),
+        body: JSON.stringify(
+          buildPayload(false, {
+            triggerScope: effectiveTriggerScope,
+            matchMode: effectiveMatchMode,
+            dmMessage: effectiveDmMessage,
+          })
+        ),
       });
       const data = await res.json();
       if (data.success) {
