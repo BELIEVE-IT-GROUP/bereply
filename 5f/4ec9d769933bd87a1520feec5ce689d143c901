@@ -1,0 +1,57 @@
+app/apple-icon.tsx
+  s_5e2d6567006582::t_a07afb4bd104b3 1-28
+app/manifest.ts
+  s_5e2d6567006582::t_eca71576d56532 9-10,15-16,18-20
+components/follower-chart.tsx
+  s_5e2d6567006582::t_209c5c5c87689b 34
+app/page.tsx
+  s_5e2d6567006582::t_2ef29d520008d2 1-2,4-6
+app/icon-192/route.tsx
+  s_5e2d6567006582::t_ae859d19abad99 1-25
+app/globals.css
+  s_5e2d6567006582::t_30408605890c31 14-15
+docker-compose.prod.yml
+  s_5e2d6567006582::t_f6bd75a926c123 1-11,13-99
+  s_5e2d6567006582::t_5d4155c1eec0f6 12
+app/invite/[token]/page.tsx
+  s_5e2d6567006582::t_d0ade6509eb745 7,14
+  s_5e2d6567006582::t_406c5077afb1b9 39-40
+components/sidebar.tsx
+  s_5e2d6567006582::t_d683e9af233926 60
+  s_5e2d6567006582::t_3d077ba6aac20f 11
+  s_5e2d6567006582::t_7142af10598f5e 48,57,61,79-80,90-92
+components/brand-mark.tsx
+  s_5e2d6567006582::t_81609ccbd14be0 17-18
+  s_5e2d6567006582::t_3c88aa35284f10 3-5,7-14,21-33
+  s_5e2d6567006582::t_befe44b69b67c9 1-2,6,15-16,19-20,34-36
+app/icon.tsx
+  s_5e2d6567006582::t_e2f4bf99673e65 1-28
+app/icon-512/route.tsx
+  s_5e2d6567006582::t_cb0723ff8947f5 1-25
+app/verify-request/page.tsx
+  s_5e2d6567006582::t_28df1ff5f23cb3 2,5,14-15
+app/login/page.tsx
+  s_5e2d6567006582::t_3fac91f20d3008 4,7
+  s_5e2d6567006582::t_3a678e4158f2a6 40-41
+app/layout.tsx
+  s_5e2d6567006582::t_77ef2f71b6d34b 2,6-11,13,15,25
+  s_5e2d6567006582::t_dcfdf6121f3308 45
+lib/auth.ts
+  s_5e2d6567006582::t_dd163c751fe181 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5f4ec9d769933bd87a1520feec5ce689d143c901",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
