@@ -8,6 +8,7 @@ interface SettingsData {
   workspace: {
     name: string;
     dmsSentThisPeriod: number;
+    aiTokensThisPeriod: number;
   };
   instagramAccount: {
     id: string;
@@ -59,6 +60,8 @@ export default function SettingsPage() {
   const [ecommerce, setEcommerce] = useState<EcommerceSettings | null>(null);
   const [ecommerceSlugInput, setEcommerceSlugInput] = useState("");
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
+  const [knowledgeBase, setKnowledgeBase] = useState("");
+  const [knowledgeSaved, setKnowledgeSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -70,17 +73,38 @@ export default function SettingsPage() {
       fetch("/api/dashboard/stats").then((res) => res.json()),
       fetch("/api/workspace/members").then((res) => res.json()),
       fetch("/api/settings/ecommerce").then((res) => res.json()),
+      fetch("/api/settings/knowledge").then((res) => res.json()),
     ])
-      .then(([statsPayload, membersPayload, ecommercePayload]) => {
+      .then(([statsPayload, membersPayload, ecommercePayload, knowledgePayload]) => {
         if (statsPayload.success) setData(statsPayload.data);
         if (membersPayload.success) setMembersData(membersPayload.data);
         if (ecommercePayload.success) {
           setEcommerce(ecommercePayload.data);
           setEcommerceSlugInput(ecommercePayload.data.slug ?? "");
         }
+        if (knowledgePayload.success) {
+          setKnowledgeBase(knowledgePayload.data.knowledgeBase ?? "");
+        }
       })
       .finally(() => setLoading(false));
   }, []);
+
+  async function saveKnowledgeBase() {
+    setBusy("knowledge");
+    setKnowledgeSaved(false);
+    const res = await fetch("/api/settings/knowledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ knowledgeBase }),
+    });
+    const payload = await res.json();
+    setBusy(null);
+    if (payload.success) {
+      setKnowledgeSaved(true);
+    } else {
+      alert(payload.error ?? "Could not save");
+    }
+  }
 
   async function generateEcommerceSecret() {
     setBusy("ecommerce");
@@ -372,6 +396,60 @@ export default function SettingsPage() {
           <span className="text-sm font-semibold text-foreground">
             {data?.workspace.dmsSentThisPeriod ?? 0}
           </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 py-3 border-t border-border">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              AI tokens this month
+            </p>
+            <p className="text-xs text-muted mt-0.5">
+              Input + output tokens across every AI-enabled reply.
+            </p>
+          </div>
+          <span className="text-sm font-semibold text-foreground">
+            {data?.workspace.aiTokensThisPeriod ?? 0}
+          </span>
+        </div>
+      </section>
+
+      <section className="panel rounded p-4 sm:p-6">
+        <h2 className="text-base font-semibold mb-1">Brand knowledge</h2>
+        <p className="text-xs text-muted mb-4">
+          Products, pricing, shipping, policies, FAQs — whatever the AI
+          auto-responder should treat as fact. Shared by every AI-enabled
+          campaign in this workspace; it won&apos;t invent details that
+          aren&apos;t here or in the campaign&apos;s own instructions.
+        </p>
+        <div className="max-w-2xl space-y-2">
+          <textarea
+            value={knowledgeBase}
+            onChange={(e) => {
+              setKnowledgeBase(e.target.value);
+              setKnowledgeSaved(false);
+            }}
+            rows={10}
+            maxLength={12000}
+            placeholder={
+              "Ej:\nEnvíos a todo Chile, 3-5 días hábiles.\nCambios dentro de 30 días con boleta.\nTallas: XS a XL, guía en el perfil."
+            }
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+          />
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={saveKnowledgeBase}
+              disabled={busy === "knowledge"}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+            >
+              {busy === "knowledge" ? "Saving…" : "Save"}
+            </button>
+            {knowledgeSaved && (
+              <span className="text-xs text-muted">Saved.</span>
+            )}
+            <span className="ml-auto text-xs text-muted">
+              {knowledgeBase.length}/12000
+            </span>
+          </div>
         </div>
       </section>
 
