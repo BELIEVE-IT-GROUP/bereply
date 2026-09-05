@@ -74,6 +74,12 @@ model Workspace {
 
   usagePeriodStart  DateTime @default(now())
   dmsSentThisPeriod Int      @default(0)
+  aiTokensThisPeriod Int     @default(0)
+
+  // Inbound ecommerce webhook (BeCommerce/Medusa order events). Both null
+  // until the workspace owner sets up the integration in Settings.
+  ecommerceStoreSlug     String? @unique
+  ecommerceWebhookSecret String?
 
   members           WorkspaceMember[]
   invitations       WorkspaceInvitation[]
@@ -84,6 +90,7 @@ model Workspace {
   linkClicks        LinkClick[]
   webhookEvents     WebhookEvent[]
   operationalEvents OperationalEvent[]
+  contacts          Contact[]
 
   @@index([ownerId])
 }
@@ -141,7 +148,30 @@ model InstagramAccount {
   dmLogs      DmLog[]
   linkClicks  LinkClick[]
   followerSnapshots FollowerSnapshot[]
+  contacts    Contact[]
 
+  @@index([workspaceId])
+}
+
+/// One row per Instagram user who has ever commented or DM'd a connected
+/// account. Populated by the worker as messages come in — not backfilled
+/// for history predating this feature. Tags are freeform, workspace-defined
+/// segments (e.g. "customer", "vip"); nothing here sends anything on its
+/// own, campaigns/flows read tags to decide who matches.
+model Contact {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  instagramAccountId String
+  igUserId           String
+  username           String?
+  tags               String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  workspace        Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([instagramAccountId, igUserId])
   @@index([workspaceId])
 }
 
@@ -202,6 +232,16 @@ model Automation {
   wholeWordMatch Boolean @default(true)
   reportShareSlug    String? @unique
   reportShareEnabled Boolean @default(true)
+
+  // AI auto-responder. Off by default — existing campaigns keep sending
+  // dmMessage unchanged. aiConfig shape: { systemPrompt, model?, escalationRules? }.
+  aiEnabled Boolean @default(false)
+  aiConfig  Json?
+
+  // Visual flow (xyflow nodes/edges). Null means "legacy simple mode" — the
+  // worker falls back to the keyword/dmMessage fields above when absent.
+  nodes Json?
+  edges Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -366,6 +406,7 @@ enum DmStatus {
   SKIPPED_RATE_LIMIT
   SKIPPED_PLAN_LIMIT
   SKIPPED_NO_MATCH
+  SKIPPED_ESCALATED
 }
 
 enum WebhookStatus {

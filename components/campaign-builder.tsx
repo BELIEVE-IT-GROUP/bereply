@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import AccountSelect, { type AccountOption } from "@/components/account-select";
 import PostPicker from "@/components/post-picker";
 import CampaignPreview, { type PreviewTab } from "@/components/campaign-preview";
+import CampaignAiSettings from "@/components/campaign-ai-settings";
 import { readCache, writeCache } from "@/lib/client-cache";
 import {
   IMPORT_QUEUE_KEY,
@@ -54,6 +55,8 @@ interface LoadedCampaign {
   isActive: boolean;
   instagramAccountId: string;
   trackedLinks?: { destinationUrl: string; label?: string | null }[];
+  aiEnabled: boolean;
+  aiConfig: { systemPrompt?: string } | null;
 }
 
 interface CampaignBuilderProps {
@@ -181,6 +184,11 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
   const [followUpMessage, setFollowUpMessage] = useState("");
   const [followUpDelayMinutes, setFollowUpDelayMinutes] = useState(0);
 
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiConfig, setAiConfig] = useState<{ systemPrompt?: string } | null>(
+    null
+  );
+
   const [previewTab, setPreviewTab] = useState<PreviewTab>("dm");
 
   // CSV import queue. When present, each save advances to the next row instead
@@ -271,6 +279,8 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
         setOpeningDmMessage(c.openingDmMessage ?? "");
         setOpeningDmButtonLabel(c.openingDmButtonLabel ?? "");
         setDmMessage(c.dmMessage);
+        setAiEnabled(c.aiEnabled);
+        setAiConfig(c.aiConfig);
         setLinkButtonLabel(c.linkButtonLabel ?? "Open link");
         setIsActive(c.isActive);
         const link = c.trackedLinks?.[0]?.destinationUrl ?? "";
@@ -408,6 +418,8 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
       keywords: matchMode === "any" ? [] : keywords,
       dmTriggerEnabled,
       dmMessage,
+      aiEnabled,
+      aiConfig,
       openingDmEnabled,
       openingDmMessage: openingDmEnabled ? openingDmMessage : null,
       openingDmButtonLabel: openingDmEnabled ? openingDmButtonLabel : null,
@@ -978,6 +990,25 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
               </div>
             )}
           </div>
+        </Section>
+
+        <Section title="Advanced">
+          <CampaignAiSettings
+            aiEnabled={aiEnabled}
+            aiConfig={aiConfig}
+            onChange={(next) => {
+              setAiEnabled(next.aiEnabled);
+              setAiConfig(next.aiConfig);
+            }}
+          />
+          {mode === "edit" && campaignId && (
+            <a
+              href={`/campaigns/${campaignId}/flow`}
+              className="mt-3 block w-full rounded-lg border border-border py-2 text-center text-sm text-muted hover:text-foreground hover:border-border-hover"
+            >
+              Open flow builder →
+            </a>
+          )}
         </Section>
       </div>
 
