@@ -81,6 +81,11 @@ model Workspace {
   ecommerceStoreSlug     String? @unique
   ecommerceWebhookSecret String?
 
+  // Shared brand/product context (Settings → Brand knowledge), prepended to
+  // every AI-enabled campaign's system prompt in this workspace so replies
+  // are grounded in real facts instead of per-campaign prompts alone.
+  knowledgeBase String?
+
   members           WorkspaceMember[]
   invitations       WorkspaceInvitation[]
   instagramAccounts InstagramAccount[]

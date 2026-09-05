@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       select: {
         name: true,
         dmsSentThisPeriod: true,
+        aiTokensThisPeriod: true,
       },
     }),
     prisma.instagramAccount.findFirst({

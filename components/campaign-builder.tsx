@@ -393,21 +393,20 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
     setDmMessage((cur) => (cur.includes("{link}") ? cur : `${cur.trim()} {link}`.trim()));
   }
 
-  async function handleSubmit(activeValue: boolean) {
-    setError(null);
-
-    if (!selectedAccountId) return setError("Connect an Instagram account first.");
+  function validationError(): string | null {
+    if (!selectedAccountId) return "Connect an Instagram account first.";
     if (triggerScope === "specific" && !postId)
-      return setError("Pick a post or reel to trigger the campaign.");
+      return "Pick a post or reel to trigger the campaign.";
     if (matchMode === "specific" && keywords.length === 0)
-      return setError("Add at least one keyword, or switch to any word.");
-    if (!dmMessage.trim()) return setError("Add the DM with the link.");
+      return "Add at least one keyword, or switch to any word.";
+    if (!dmMessage.trim()) return "Add the DM with the link.";
     if (openingDmEnabled && (!openingDmMessage.trim() || !openingDmButtonLabel.trim()))
-      return setError("Your opening DM needs a message and a button label.");
+      return "Your opening DM needs a message and a button label.";
+    return null;
+  }
 
-    setSaving(true);
-
-    const payload = {
+  function buildPayload(activeValue: boolean) {
+    return {
       name: name.trim() || `Campaign for @${username}`,
       instagramAccountId: selectedAccountId,
       postId: triggerScope === "specific" ? postId : null,
@@ -441,6 +440,16 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
       followUpDelayMinutes: followUpEnabled ? followUpDelayMinutes : 0,
       isActive: activeValue,
     };
+  }
+
+  async function handleSubmit(activeValue: boolean) {
+    const validationMessage = validationError();
+    if (validationMessage) return setError(validationMessage);
+    setError(null);
+
+    setSaving(true);
+
+    const payload = buildPayload(activeValue);
 
     try {
       const res =
@@ -506,6 +515,42 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
             ? `${firstField}: ${fieldErrors[firstField][0]}`
             : data.error ?? "Failed to save campaign"
         );
+        if (typeof window !== "undefined")
+          window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch {
+      setError("Failed to save campaign");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // The flow builder edits an Automation record's nodes/edges, so a new
+  // campaign has to exist before it can have one. Save it first (as a draft,
+  // inactive until the user turns it on from the campaign list) and jump
+  // straight into the builder instead of routing back to the list.
+  async function handleOpenFlowBuilder() {
+    if (mode === "edit" && campaignId) {
+      router.push(`/campaigns/${campaignId}/flow`);
+      return;
+    }
+
+    const validationMessage = validationError();
+    if (validationMessage) return setError(validationMessage);
+    setError(null);
+    setSaving(true);
+
+    try {
+      const res = await fetch("/api/automations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload(false)),
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.push(`/campaigns/${data.data.id}/flow`);
+      } else {
+        setError(data.error ?? "Failed to save campaign");
         if (typeof window !== "undefined")
           window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -1001,14 +1046,16 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
               setAiConfig(next.aiConfig);
             }}
           />
-          {mode === "edit" && campaignId && (
-            <a
-              href={`/campaigns/${campaignId}/flow`}
-              className="mt-3 block w-full rounded-lg border border-border py-2 text-center text-sm text-muted hover:text-foreground hover:border-border-hover"
-            >
-              Open flow builder →
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={handleOpenFlowBuilder}
+            disabled={saving}
+            className="mt-3 block w-full rounded-lg border border-border py-2 text-center text-sm text-muted hover:text-foreground hover:border-border-hover disabled:opacity-50"
+          >
+            {mode === "edit" && campaignId
+              ? "Open flow builder →"
+              : "Save & open flow builder →"}
+          </button>
         </Section>
       </div>
 

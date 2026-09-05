@@ -87,6 +87,7 @@ export interface AiReplyResult {
   reply: string | null;
   escalate: boolean;
   reason?: string;
+  usage?: { inputTokens: number; outputTokens: number };
 }
 
 export async function getAiReply(input: AiReplyInput): Promise<AiReplyResult> {
@@ -120,12 +121,17 @@ export async function getAiReply(input: AiReplyInput): Promise<AiReplyResult> {
       { signal: controller.signal }
     );
 
+    const usage = {
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+    };
+
     const toolUse = response.content.find(
       (block): block is Anthropic.ToolUseBlock => block.type === "tool_use"
     );
 
     if (!toolUse) {
-      return { reply: null, escalate: true, reason: "ai_error: no tool_use block in response" };
+      return { reply: null, escalate: true, reason: "ai_error: no tool_use block in response", usage };
     }
 
     const parsed = toolUse.input as {
@@ -135,13 +141,14 @@ export async function getAiReply(input: AiReplyInput): Promise<AiReplyResult> {
     };
 
     if (typeof parsed.reply !== "string" || typeof parsed.escalate !== "boolean") {
-      return { reply: null, escalate: true, reason: "ai_error: malformed tool input" };
+      return { reply: null, escalate: true, reason: "ai_error: malformed tool input", usage };
     }
 
     return {
       reply: parsed.escalate ? null : parsed.reply,
       escalate: parsed.escalate,
       reason: typeof parsed.reason === "string" ? parsed.reason : undefined,
+      usage,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

@@ -40,7 +40,7 @@ import {
   renderMessageWithTracking,
   renderMessageWithoutLink,
 } from "@/lib/tracking/message";
-import { getAiReply } from "@/lib/ai/responder";
+import { getAiReply, type AiReplyResult } from "@/lib/ai/responder";
 import {
   runFlow,
   hasFlow,
@@ -1006,6 +1006,8 @@ async function resolveSmartReply(params: {
     aiConfig: unknown;
     nodes: unknown;
     edges: unknown;
+    workspaceId: string;
+    workspace: { knowledgeBase: string | null };
   };
   accessToken: string;
   igUserId: string;
@@ -1024,6 +1026,33 @@ async function resolveSmartReply(params: {
     } catch (error) {
       console.error("[DM Worker] addTag failed:", formatError(error));
     }
+  };
+
+  // The per-campaign system prompt is written by whoever set up that one
+  // campaign; the workspace-level knowledge base (Settings → Brand
+  // knowledge) is the shared source of truth about the business — products,
+  // pricing, policies — so every AI-enabled campaign in the workspace can
+  // ground its answers in it instead of improvising.
+  const brandKnowledge = automation.workspace.knowledgeBase?.trim();
+  const withBrandKnowledge = (campaignPrompt: string) =>
+    brandKnowledge
+      ? `Brand knowledge (facts about this business — do not state anything about products, pricing, stock or policy beyond what's here):\n${brandKnowledge}\n\n---\n\n${campaignPrompt}`
+      : campaignPrompt;
+
+  const trackUsage = async (usage: AiReplyResult["usage"]) => {
+    if (!usage) return;
+    await prisma.workspace
+      .update({
+        where: { id: automation.workspaceId },
+        data: {
+          aiTokensThisPeriod: {
+            increment: usage.inputTokens + usage.outputTokens,
+          },
+        },
+      })
+      .catch((error) => {
+        console.error("[DM Worker] aiTokensThisPeriod update failed:", formatError(error));
+      });
   };
 
   if (hasFlow(automation.nodes)) {
@@ -1049,10 +1078,11 @@ async function resolveSmartReply(params: {
       if (action.type === "ai_reply") {
         const history = await getRecentHistory(accessToken, igUserId, senderId);
         const ai = await getAiReply({
-          systemPrompt: action.systemPrompt,
+          systemPrompt: withBrandKnowledge(action.systemPrompt),
           history,
           incomingMessage: incomingText,
         });
+        await trackUsage(ai.usage);
         if (ai.escalate || !ai.reply) {
           return { kind: "escalate", reason: ai.reason ?? "ai_escalated" };
         }
@@ -1066,10 +1096,11 @@ async function resolveSmartReply(params: {
     const aiConfig = (automation.aiConfig ?? {}) as { systemPrompt?: string };
     const history = await getRecentHistory(accessToken, igUserId, senderId);
     const ai = await getAiReply({
-      systemPrompt: aiConfig.systemPrompt ?? "",
+      systemPrompt: withBrandKnowledge(aiConfig.systemPrompt ?? ""),
       history,
       incomingMessage: incomingText,
     });
+    await trackUsage(ai.usage);
     if (ai.escalate || !ai.reply) {
       return { kind: "escalate", reason: ai.reason ?? "ai_escalated" };
     }
