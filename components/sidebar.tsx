@@ -78,7 +78,7 @@ export default function Sidebar({
                   ${
                     isActive
                       ? "bg-white/10 text-white font-medium"
-                      : "text-white/60 hover:text-[#00aaff] hover:bg-white/5"
+                      : "text-white hover:text-[#00aaff] hover:bg-white/5"
                   }
                 `}
               >
