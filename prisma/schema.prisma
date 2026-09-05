@@ -175,6 +175,7 @@ model Contact {
 
   workspace        Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  linkClicks       LinkClick[]
 
   @@unique([instagramAccountId, igUserId])
   @@index([workspaceId])
@@ -338,6 +339,11 @@ model LinkClick {
   automationId       String
   instagramAccountId String
   trackedLinkId      String
+  /// Quien hizo click, cuando el link se genero personalizado para un
+  /// contacto (DM/reply privado, nunca la respuesta publica al comentario).
+  /// Null en clicks de links genericos, igual que todo click de antes de
+  /// este campo.
+  contactId          String?
   ipHash             String?
   userAgent          String?
   referrer           String?
@@ -347,11 +353,13 @@ model LinkClick {
   automation       Automation       @relation(fields: [automationId], references: [id], onDelete: Cascade)
   instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
   trackedLink      TrackedLink      @relation(fields: [trackedLinkId], references: [id], onDelete: Cascade)
+  contact          Contact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([automationId])
   @@index([instagramAccountId])
   @@index([trackedLinkId])
+  @@index([contactId])
   @@index([createdAt])
   @@index([workspaceId, createdAt])
 }

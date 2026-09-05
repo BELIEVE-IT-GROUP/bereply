@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { Prisma } from "@/app/generated/prisma/client";
+import { addTag } from "@/lib/contacts";
 
 interface EcommerceOrderWebhookPayload {
   event_type: string;
@@ -16,6 +17,11 @@ interface EcommerceOrderWebhookPayload {
     currency: string;
     timestamp: string;
     tags?: string[];
+    // Contact.id, propagado desde un link personalizado que salio de esta
+    // misma app (ver app/r/[slug]/route.ts -> bc_ref -> cart.metadata ->
+    // order.metadata en BeCommerce). Ausente en cualquier pedido que no
+    // vino de un link nuestro -- la mayoria, todavia.
+    bereply_contact_ref?: string;
   };
 }
 
@@ -100,20 +106,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    // Log-only by design: there is no way today to link a BeCommerce buyer
-    // email to an Instagram Contact (igUserId), so this intentionally does
-    // NOT attempt any matching/auto-tagging. It exists for audit trail and
-    // future features once that link exists.
+    // bereply_contact_ref viene de un link personalizado que esta misma app
+    // genero (app/r/[slug]/route.ts): si esta presente y el Contact es de
+    // ESTE workspace, el pedido se puede vincular sin que nadie haya tipeado
+    // nada. Sin el (la mayoria de los pedidos, todavia) queda PENDING para
+    // el emparejado manual -- no hay adivinanza de por medio.
+    let linkedContactId: string | null = null;
+    const ref = payload.data.bereply_contact_ref;
+    if (ref) {
+      const contact = await prisma.contact.findUnique({
+        where: { id: ref },
+        select: { id: true, workspaceId: true },
+      });
+      if (contact && contact.workspaceId === workspace.id) {
+        linkedContactId = contact.id;
+        await addTag(contact.id, "customer").catch((error) => {
+          console.error("ecommerce webhook: addTag failed", error);
+        });
+      }
+    }
+
     await prisma.webhookEvent.create({
       data: {
         workspaceId: workspace.id,
         object: "ecommerce_order",
         payload: payload as unknown as Prisma.InputJsonValue,
-        status: "PENDING",
+        status: linkedContactId ? "PROCESSED" : "PENDING",
       },
     });
 
-    return NextResponse.json({ received: true }, { status: 200 });
+    return NextResponse.json(
+      { received: true, linked: Boolean(linkedContactId) },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("ecommerce webhook error", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -39,6 +39,29 @@ describe("tracked link messages", () => {
     ).toBe("Hey Maya, grab it here: https://manychat-alternative.com/r/abc123");
   });
 
+  it("appends the contact id as ?c= for a personalized link, never by default", () => {
+    expect(buildTrackedUrl("abc123", "https://manychat-alternative.com")).toBe(
+      "https://manychat-alternative.com/r/abc123"
+    );
+    expect(
+      buildTrackedUrl("abc123", "https://manychat-alternative.com", "contact_1")
+    ).toBe("https://manychat-alternative.com/r/abc123?c=contact_1");
+    expect(
+      buildTrackedUrl("abc123", "https://manychat-alternative.com", null)
+    ).toBe("https://manychat-alternative.com/r/abc123");
+  });
+
+  it("threads the contact id through renderMessageWithTracking when given", () => {
+    expect(
+      renderMessageWithTracking({
+        message: "{link}",
+        trackedLinks: [{ slug: "abc123", destinationUrl: "https://example.com" }],
+        baseUrl: "https://manychat-alternative.com",
+        contactId: "contact_1",
+      })
+    ).toBe("https://manychat-alternative.com/r/abc123?c=contact_1");
+  });
+
   it("can replace a raw destination URL when the placeholder is missing", () => {
     expect(
       renderMessageWithTracking({
