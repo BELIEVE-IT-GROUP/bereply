@@ -1,0 +1,43 @@
+lib/becommerce/mcp-client.ts
+  s_5e2d6567006582::t_66fa91664a59d4 1-85
+components/flow-builder/flow-node.tsx
+  s_5e2d6567006582::t_c42a83c5793391 130-139
+  s_5e2d6567006582::t_00464215a0acf5 62-70
+  s_5e2d6567006582::t_9e0d5a907b0f19 6
+lib/meta/client.ts
+  s_5e2d6567006582::t_2fba796ce34934 406-457
+lib/flow/engine.test.ts
+  s_5e2d6567006582::t_515347aa65de13 108-119
+components/flow-builder/flow-builder.tsx
+  s_5e2d6567006582::t_34c7319f52a7cd 356-370
+  s_5e2d6567006582::t_370fb3509eef83 43,51,59
+lib/queue/dm-worker.ts
+  s_5e2d6567006582::t_f453bc36fae310 29-30
+  s_5e2d6567006582::t_1a3466374eb4b6 1405-1411
+  s_5e2d6567006582::t_879ccd427554c6 1022
+  s_5e2d6567006582::t_47fe52ad491a78 1120-1134,1138-1147
+  s_5e2d6567006582::t_8284eb7db1d6fc 1039
+  s_5e2d6567006582::t_b95d7e6567b095 53
+  s_5e2d6567006582::t_cdee4494baa827 1135-1137
+  s_5e2d6567006582::t_3abf9fefc14f9a 995-1019
+lib/flow/engine.ts
+  s_5e2d6567006582::t_c086afb5cee1ba 40
+  s_5e2d6567006582::t_725432cab3a27f 136-141
+  s_5e2d6567006582::t_bc58a02ca763c3 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "c37fe583e37a747f19b17608ec315feddc6f1fdf",
+  "prompts": {},
+  "sessions": {
+    "s_5e2d6567006582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77d646c1-f285-40ba-aafa-e9a5b8458c8c",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
