@@ -1,0 +1,19 @@
+docker-compose.prod.yml
+  s_1e0965b08f30d0::t_f0a45ca472d641 17,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5421aabf9282c46388b8d3ee5e33c05e137c0782",
+  "prompts": {},
+  "sessions": {
+    "s_1e0965b08f30d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8459631c-b0e2-4620-935f-3474fd8b2def",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
