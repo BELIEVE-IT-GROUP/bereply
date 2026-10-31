@@ -1079,6 +1079,7 @@ async function resolveSmartReply(params: {
     edges: unknown;
     workspaceId: string;
     workspace: { knowledgeBase: string | null; ecommerceStoreSlug: string | null };
+    instagramAccount: { knowledgeBase: string | null };
   };
   accessToken: string;
   igUserId: string;
@@ -1100,11 +1101,14 @@ async function resolveSmartReply(params: {
   };
 
   // The per-campaign system prompt is written by whoever set up that one
-  // campaign; the workspace-level knowledge base (Settings → Brand
-  // knowledge) is the shared source of truth about the business — products,
-  // pricing, policies — so every AI-enabled campaign in the workspace can
-  // ground its answers in it instead of improvising.
-  const brandKnowledge = automation.workspace.knowledgeBase?.trim();
+  // campaign; the knowledge base (Settings → Brand knowledge) is the source
+  // of truth about the business — products, pricing, policies — so every
+  // AI-enabled campaign can ground its answers in it instead of improvising.
+  // One workspace can hold several brands' accounts, so the account's own
+  // knowledge wins and the workspace's is only the fallback.
+  const brandKnowledge =
+    automation.instagramAccount.knowledgeBase?.trim() ||
+    automation.workspace.knowledgeBase?.trim();
   const withBrandKnowledge = (campaignPrompt: string) =>
     brandKnowledge
       ? `Brand knowledge (facts about this business — do not state anything about products, pricing, stock or policy beyond what's here):\n${brandKnowledge}\n\n---\n\n${campaignPrompt}`

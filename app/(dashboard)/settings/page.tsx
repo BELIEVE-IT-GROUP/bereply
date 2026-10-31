@@ -61,6 +61,7 @@ export default function SettingsPage() {
   const [ecommerceSlugInput, setEcommerceSlugInput] = useState("");
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
   const [knowledgeBase, setKnowledgeBase] = useState("");
+  const [knowledgeAccountId, setKnowledgeAccountId] = useState("");
   const [knowledgeSaved, setKnowledgeSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -89,13 +90,23 @@ export default function SettingsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  async function selectKnowledgeAccount(accountId: string) {
+    setKnowledgeAccountId(accountId);
+    setKnowledgeSaved(false);
+    setBusy("knowledge");
+    const query = accountId ? `?instagramAccountId=${encodeURIComponent(accountId)}` : "";
+    const payload = await fetch(`/api/settings/knowledge${query}`).then((res) => res.json());
+    setBusy(null);
+    setKnowledgeBase(payload.success ? payload.data.knowledgeBase ?? "" : "");
+  }
+
   async function saveKnowledgeBase() {
     setBusy("knowledge");
     setKnowledgeSaved(false);
     const res = await fetch("/api/settings/knowledge", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ knowledgeBase }),
+      body: JSON.stringify({ knowledgeBase, instagramAccountId: knowledgeAccountId }),
     });
     const payload = await res.json();
     setBusy(null);
@@ -416,11 +427,25 @@ export default function SettingsPage() {
         <h2 className="text-base font-semibold mb-1">Brand knowledge</h2>
         <p className="text-xs text-muted mb-4">
           Products, pricing, shipping, policies, FAQs — whatever the AI
-          auto-responder should treat as fact. Shared by every AI-enabled
-          campaign in this workspace; it won&apos;t invent details that
-          aren&apos;t here or in the campaign&apos;s own instructions.
+          auto-responder should treat as fact. Each Instagram account can
+          have its own; accounts without one use the workspace default. It
+          won&apos;t invent details that aren&apos;t here or in the
+          campaign&apos;s own instructions.
         </p>
         <div className="max-w-2xl space-y-2">
+          <select
+            value={knowledgeAccountId}
+            onChange={(e) => selectKnowledgeAccount(e.target.value)}
+            disabled={busy === "knowledge"}
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+          >
+            <option value="">Workspace default (all accounts)</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                @{account.username}
+              </option>
+            ))}
+          </select>
           <textarea
             value={knowledgeBase}
             onChange={(e) => {
