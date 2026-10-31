@@ -1,0 +1,38 @@
+.env.example
+  s_769bae67959473::t_8a29f15c581e66 36-38
+vercel.json
+  s_769bae67959473::t_8a29f15c581e66 14-17
+scripts/cron.sh
+  s_769bae67959473::t_36b2a13eb61737 28,68
+lib/ai/responder.ts
+  s_769bae67959473::t_9a6c4c2595519e 11
+prisma/migrations/20261031130000_add_instagram_account_maasy_link/migration.sql
+  s_769bae67959473::t_9a6c4c2595519e 1-3
+lib/maasy/brand.ts
+  s_769bae67959473::t_8d0288a4352f31 1-119
+app/api/settings/maasy/route.ts
+  s_769bae67959473::t_7c8fff08d4817b 1-74
+app/api/cron/sync-maasy/route.ts
+  s_769bae67959473::t_d99c16906cd01e 1-4,6-38
+  s_769bae67959473::t_36b2a13eb61737 5
+app/(dashboard)/settings/page.tsx
+  s_769bae67959473::t_84cc15ae198946 65-68,95-98,101-131,488-523
+prisma/schema.prisma
+  s_769bae67959473::t_9a6c4c2595519e 149-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e2e805ca69eaf8493a2b18629d205ebe72996f4",
+  "prompts": {},
+  "sessions": {
+    "s_769bae67959473": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92f4e551-8f46-416d-9997-7d476bc2e62c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
