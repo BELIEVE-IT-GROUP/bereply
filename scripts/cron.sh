@@ -25,7 +25,7 @@ call() {
   route="$1"
   stamp=$(date -u '+%Y-%m-%d %H:%M:%S')
 
-  if body=$(wget -q -O- --timeout=180 \
+  if body=$(wget -q -O- --timeout="${2:-180}" \
       --header="Authorization: Bearer $SECRET" \
       "$BASE_URL/api/cron/$route" 2>&1); then
     echo "[cron] $stamp $route ok $body"
@@ -65,6 +65,7 @@ while true; do
     last_daily="$today"
     call refresh-tokens
     call snapshot-followers
+    call sync-maasy 900
   fi
 
   # Half a minute: short enough never to skip a slot, long enough to stay idle.

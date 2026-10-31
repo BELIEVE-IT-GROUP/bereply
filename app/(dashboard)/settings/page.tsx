@@ -62,6 +62,10 @@ export default function SettingsPage() {
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
   const [knowledgeBase, setKnowledgeBase] = useState("");
   const [knowledgeAccountId, setKnowledgeAccountId] = useState("");
+  const [maasy, setMaasy] = useState<{
+    brands: Array<{ id: string; brand_name: string }>;
+    accounts: Array<{ id: string; maasyProjectId: string | null; maasySyncedAt: string | null }>;
+  } | null>(null);
   const [knowledgeSaved, setKnowledgeSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -88,7 +92,42 @@ export default function SettingsPage() {
         }
       })
       .finally(() => setLoading(false));
+    fetch("/api/settings/maasy")
+      .then((res) => res.json())
+      .then((payload) => payload.success && setMaasy(payload.data))
+      .catch(() => {});
   }, []);
+
+  async function linkMaasyBrand(maasyProjectId: string) {
+    setBusy("knowledge");
+    setKnowledgeSaved(false);
+    const res = await fetch("/api/settings/maasy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instagramAccountId: knowledgeAccountId, maasyProjectId }),
+    });
+    const payload = await res.json();
+    setBusy(null);
+    if (!payload.success) {
+      alert(payload.error ?? "Could not sync from Maasy");
+      return;
+    }
+    if (payload.data.knowledgeBase !== null) setKnowledgeBase(payload.data.knowledgeBase);
+    setMaasy((prev) =>
+      prev && {
+        ...prev,
+        accounts: prev.accounts.map((a) =>
+          a.id === knowledgeAccountId
+            ? {
+                ...a,
+                maasyProjectId: maasyProjectId || null,
+                maasySyncedAt: maasyProjectId ? new Date().toISOString() : null,
+              }
+            : a
+        ),
+      }
+    );
+  }
 
   async function selectKnowledgeAccount(accountId: string) {
     setKnowledgeAccountId(accountId);
@@ -446,6 +485,42 @@ export default function SettingsPage() {
               </option>
             ))}
           </select>
+          {knowledgeAccountId && maasy && (() => {
+            const link = maasy.accounts.find((a) => a.id === knowledgeAccountId);
+            return (
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={link?.maasyProjectId ?? ""}
+                  onChange={(e) => linkMaasyBrand(e.target.value)}
+                  disabled={busy === "knowledge"}
+                  className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+                >
+                  <option value="">Not linked to Maasy (write it by hand)</option>
+                  {maasy.brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      Maasy: {brand.brand_name}
+                    </option>
+                  ))}
+                </select>
+                {link?.maasyProjectId && (
+                  <button
+                    type="button"
+                    onClick={() => linkMaasyBrand(link.maasyProjectId!)}
+                    disabled={busy === "knowledge"}
+                    className="rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:bg-surface disabled:opacity-50"
+                  >
+                    {busy === "knowledge" ? "Syncing…" : "Sync now"}
+                  </button>
+                )}
+                {link?.maasySyncedAt && (
+                  <span className="w-full text-xs text-muted">
+                    Pulled from Maasy brand DNA {new Date(link.maasySyncedAt).toLocaleString()}.
+                    Re-synced daily; hand edits are replaced on the next sync.
+                  </span>
+                )}
+              </div>
+            );
+          })()}
           <textarea
             value={knowledgeBase}
             onChange={(e) => {

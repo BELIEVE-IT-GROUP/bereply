@@ -8,7 +8,7 @@ import OpenAI from "openai";
 // the env vars to be set — the OpenAI SDK throws at construction time if
 // apiKey is empty.
 let client: OpenAI | null = null;
-function getClient(): OpenAI {
+export function getClient(): OpenAI {
   if (!client) {
     client = new OpenAI({
       baseURL: `${process.env.LLM_GATEWAY_URL}/v1`,
