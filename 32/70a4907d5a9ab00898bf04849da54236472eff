@@ -1,0 +1,49 @@
+app/templates/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 8
+app/terms/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 5,7,14,20,31,39
+components/seo-page-shell.tsx
+  s_769bae67959473::t_ef081e730f07f5 95,169
+lib/seo-pages.ts
+  s_769bae67959473::t_ef081e730f07f5 14,25,36,57-58,128,232
+app/instagram-dm-automation-agencies/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 13
+app/privacy/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 5,7,14,41
+  s_769bae67959473::t_e881c927a6a2ac 70-75
+components/public-site-header.tsx
+  s_769bae67959473::t_ef081e730f07f5 18-19
+app/manychat-alternative/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 13
+app/meta-review/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 5,7,14,22
+app/data-deletion/page.tsx
+  s_769bae67959473::t_e881c927a6a2ac 30-34
+  s_769bae67959473::t_ef081e730f07f5 5,7,14
+app/templates/[slug]/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 28,172
+app/instagram-comment-to-dm-templates/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 13
+app/reports/[shareSlug]/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 114,302
+app/comment-link-automation/page.tsx
+  s_769bae67959473::t_ef081e730f07f5 13
+components/legal-shell.tsx
+  s_769bae67959473::t_ef081e730f07f5 21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3270a4907d5a9ab00898bf04849da54236472eff",
+  "prompts": {},
+  "sessions": {
+    "s_769bae67959473": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92f4e551-8f46-416d-9997-7d476bc2e62c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
