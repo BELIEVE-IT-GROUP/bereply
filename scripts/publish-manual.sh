@@ -42,7 +42,9 @@ done
 [[ -n "$NODE" ]] || { echo "ERROR: no encuentro node." >&2; exit 1; }
 field() { "$NODE" -e 'const m=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));console.log(m[process.argv[2]]??"")' "$1" "$2"; }
 
-[[ -d "${ROOT}/scripts/manual/node_modules/mermaid" ]] || (cd "${ROOT}/scripts/manual" && npm ci --no-audit --no-fund --silent)
+if grep -qE '^[`]{3}mermaid' "${ROOT}"/docs/manual/secciones/*.md && [[ ! -d "${ROOT}/scripts/manual/node_modules/mermaid" ]]; then
+  (cd "${ROOT}/scripts/manual" && npm install --no-audit --no-fund --silent)
+fi
 
 [[ $PUBLISH -eq 1 ]] && echo "==> PUBLICANDO los manuales: ${MANUALS[*]}" || echo "==> ENSAYO (no se sube nada; con --publish se publica): ${MANUALS[*]}"
 "$NODE" "${ROOT}/scripts/manual/build.mjs" "${MANUALS[@]}"
