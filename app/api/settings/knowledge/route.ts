@@ -9,7 +9,22 @@ export const dynamic = "force-dynamic";
 
 const MAX_LENGTH = 12_000;
 
-export async function GET() {
+// No instagramAccountId → the workspace-wide fallback; otherwise that account's
+// own knowledge, scoped to the caller's workspace so ids from elsewhere miss.
+async function findKnowledge(workspaceId: string, instagramAccountId: string | null) {
+  if (!instagramAccountId) {
+    return prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { knowledgeBase: true },
+    });
+  }
+  return prisma.instagramAccount.findFirst({
+    where: { id: instagramAccountId, workspaceId },
+    select: { knowledgeBase: true },
+  });
+}
+
+export async function GET(request: NextRequest) {
   const context = await getCurrentWorkspaceContext();
   if (!context) {
     return NextResponse.json(
@@ -18,14 +33,20 @@ export async function GET() {
     );
   }
 
-  const workspace = await prisma.workspace.findUnique({
-    where: { id: context.workspaceId },
-    select: { knowledgeBase: true },
-  });
+  const found = await findKnowledge(
+    context.workspaceId,
+    request.nextUrl.searchParams.get("instagramAccountId")
+  );
+  if (!found) {
+    return NextResponse.json(
+      { success: false, error: "Not found" },
+      { status: 404 }
+    );
+  }
 
   return NextResponse.json({
     success: true,
-    data: { knowledgeBase: workspace?.knowledgeBase ?? "" },
+    data: { knowledgeBase: found.knowledgeBase ?? "" },
   });
 }
 
@@ -46,6 +67,10 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}));
   const knowledgeBase = typeof body?.knowledgeBase === "string" ? body.knowledgeBase : "";
+  const instagramAccountId =
+    typeof body?.instagramAccountId === "string" && body.instagramAccountId
+      ? body.instagramAccountId
+      : null;
 
   if (knowledgeBase.length > MAX_LENGTH) {
     return NextResponse.json(
@@ -54,10 +79,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await prisma.workspace.update({
-    where: { id: context.workspaceId },
-    data: { knowledgeBase: knowledgeBase.trim() || null },
-  });
+  const data = { knowledgeBase: knowledgeBase.trim() || null };
+
+  if (instagramAccountId) {
+    const { count } = await prisma.instagramAccount.updateMany({
+      where: { id: instagramAccountId, workspaceId: context.workspaceId },
+      data,
+    });
+    if (count === 0) {
+      return NextResponse.json(
+        { success: false, error: "Not found" },
+        { status: 404 }
+      );
+    }
+  } else {
+    await prisma.workspace.update({
+      where: { id: context.workspaceId },
+      data,
+    });
+  }
 
   return NextResponse.json({ success: true });
 }
