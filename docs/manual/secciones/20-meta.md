@@ -37,6 +37,6 @@ Si un cliente va a conectar su cuenta sin pasar por Believe, hace falta **acceso
 
 Estado: **pendiente, no enviado**.
 
-## Pendiente en la configuración básica
+## Configuración básica
 
-La URL de eliminación de datos apunta a `https://www.facebook.com/`. Debe ser `https://reply.believe-global.com/data-deletion` antes de mandar el App Review. Se cambia a mano en **Configuración de la app → Básica**: en esa página hay un iframe de otra extensión de Chrome que bloquea a `bsk`.
+Verificada el 2026-10-31: dominio de la app `believe-global.com`, privacidad `https://reply.believe-global.com/privacy`, condiciones `https://reply.believe-global.com/terms` y eliminación de datos `https://reply.believe-global.com/data-deletion/`. Las tres páginas dicen BeReply, nombran a Believe It Group y dan `hola@believe-global.com` como contacto. Esta página se edita a mano: tiene un iframe de otra extensión de Chrome que bloquea a `bsk`.
