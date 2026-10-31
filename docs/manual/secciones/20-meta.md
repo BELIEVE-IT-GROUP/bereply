@@ -35,7 +35,7 @@ Si un cliente va a conectar su cuenta sin pasar por Believe, hace falta **acceso
 - Se manda con un screencast del flujo completo: conectar la cuenta, crear una campaña, comentar y recibir el DM.
 - Guía de textos para la solicitud: `META_APP_REVIEW.md` en el repo.
 
-Estado: **pendiente, no enviado**.
+Estado: **enviado el 2026-10-31**, en revisión (Meta estima unos 20 días). Solicitud `1639023590992869` con `instagram_business_basic`, `instagram_business_manage_comments`, `instagram_business_manage_messages` y `public_profile`. Mientras dure, la campaña "Meta App Review demo" (palabra REVIEW en el reel `DfIJjORt63j`) tiene que seguir activa: es la que prueba el revisor.
 
 ## Configuración básica
 
