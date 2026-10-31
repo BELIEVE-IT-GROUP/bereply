@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import LegalShell from "@/components/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - OpenReply",
+  title: "Privacy Policy - BeReply",
   description:
-    "How OpenReply handles Instagram account data, webhook payloads, billing data, and customer campaign information.",
+    "How BeReply handles Instagram account data, webhook payloads, billing data, and customer campaign information.",
 };
 
 export default function PrivacyPage() {
   return (
     <LegalShell
       title="Privacy Policy"
-      description="OpenReply helps businesses send Meta-compliant private replies when people comment on connected Instagram posts or reels."
+      description="BeReply helps businesses send Meta-compliant private replies when people comment on connected Instagram posts or reels."
       updatedAt="May 24, 2026"
     >
       <section>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
       <section>
         <h2 className="text-xl font-bold text-white">Instagram And Meta Data</h2>
         <p className="mt-3">
-          OpenReply does not ask for Instagram passwords, scrape Instagram, or
+          BeReply does not ask for Instagram passwords, scrape Instagram, or
           use browser automation. Instagram tokens are encrypted at rest and are
           used only to perform actions authorized by the connected business
           account.
@@ -67,8 +67,12 @@ export default function PrivacyPage() {
       <section>
         <h2 className="text-xl font-bold text-white">Contact</h2>
         <p className="mt-3">
-          For privacy questions, contact the repository owner through GitHub or
-          the support email configured for the hosted OpenReply service.
+          BeReply is operated by Believe It Group. For privacy questions or data
+          requests, email{" "}
+          <a href="mailto:hola@believe-global.com" className="underline">
+            hola@believe-global.com
+          </a>
+          .
         </p>
       </section>
     </LegalShell>
