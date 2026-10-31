@@ -1,0 +1,184 @@
+{
+  "producto": "BeReply",
+  "r2": {
+    "prefix": "bereply/manual",
+    "public_base": "https://files.believe-global.com"
+  },
+  "benotes": {
+    "url": "https://cuadernos.believe-global.com",
+    "notebook": "BELIEVE"
+  },
+  "assets": {
+    "bereply.svg": "docs/manual/marca/bereply.svg",
+    "bereply-inverse.svg": "docs/manual/marca/bereply-inverse.svg",
+    "bereply-positive.svg": "docs/manual/marca/bereply-positive.svg",
+    "bereply-negative.svg": "docs/manual/marca/bereply-negative.svg",
+    "believe-negative.svg": "docs/manual/marca/believe-negative.svg"
+  },
+  "manuales": {
+    "usuario": {
+      "title": "Manual de *usuario*",
+      "eyebrow": "Para quien opera las cuentas",
+      "subtitle": "Cómo responder comentarios y mensajes de Instagram con BeReply: cuentas, campañas, conocimiento de marca desde Maasy, IA, flujos y resultados.",
+      "benotes_title": "BeReply · Manual de usuario",
+      "benotes_page_id": "",
+      "revisado": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "portada": {
+        "imagen": "../img/panel.jpg",
+        "alt": "El dashboard de BeReply con la actividad de las cuentas conectadas"
+      },
+      "secciones": [
+        "01-que-es.md",
+        "02-primeros-pasos.md",
+        "03-campanas.md",
+        "04-conocimiento-de-marca.md",
+        "05-respuestas-con-ia.md",
+        "06-flujos.md",
+        "07-contactos-bandeja-resultados.md",
+        "08-equipo-y-cuentas.md",
+        "09-problemas-frecuentes.md"
+      ]
+    },
+    "operacion": {
+      "title": "Manual de *operación*",
+      "eyebrow": "Para Believe",
+      "subtitle": "Todo el manual de usuario más cómo Believe administra BeReply: la app de Meta, el servidor, los trabajos diarios, las integraciones y este manual.",
+      "benotes_title": "BeReply · Manual de operación",
+      "benotes_page_id": "",
+      "revisado": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "portada": {
+        "imagen": "../img/ajustes.jpg",
+        "alt": "Settings de BeReply con las cuentas conectadas"
+      },
+      "incluye": "usuario",
+      "secciones": [
+        "20-meta.md",
+        "21-infraestructura.md",
+        "22-integraciones.md",
+        "23-este-manual.md"
+      ]
+    }
+  },
+  "sources": {
+    "01-que-es.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "README.md",
+        "app/(dashboard)/dashboard",
+        "lib/queue/dm-worker.ts"
+      ]
+    },
+    "02-primeros-pasos.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "app/(dashboard)/settings/page.tsx",
+        "app/api/instagram",
+        "lib/auth.ts",
+        "app/login"
+      ]
+    },
+    "03-campanas.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "components/campaign-builder.tsx",
+        "app/(dashboard)/campaigns",
+        "lib/utils/keyword-matcher.ts",
+        "lib/queue/dm-worker.ts"
+      ]
+    },
+    "04-conocimiento-de-marca.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "app/(dashboard)/settings/page.tsx",
+        "app/api/settings/knowledge",
+        "app/api/settings/maasy",
+        "lib/maasy",
+        "scripts/cron.sh"
+      ]
+    },
+    "05-respuestas-con-ia.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "lib/ai/responder.ts",
+        "components/campaign-ai-settings.tsx",
+        "lib/queue/dm-worker.ts"
+      ]
+    },
+    "06-flujos.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "components/flow-builder",
+        "lib/flow",
+        "lib/becommerce"
+      ]
+    },
+    "07-contactos-bandeja-resultados.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "app/(dashboard)/dashboard",
+        "app/(dashboard)/overview",
+        "app/(dashboard)/inbox",
+        "app/(dashboard)/contacts",
+        "app/(dashboard)/logs",
+        "app/r",
+        "lib/contacts.ts",
+        "prisma/schema.prisma"
+      ]
+    },
+    "08-equipo-y-cuentas.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "lib/workspace.ts",
+        "lib/workspace-access.ts",
+        "app/(dashboard)/settings/page.tsx",
+        "app/invite"
+      ]
+    },
+    "09-problemas-frecuentes.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "app/(dashboard)/diagnostics",
+        "lib/queue/dm-worker.ts",
+        "lib/meta"
+      ]
+    },
+    "20-meta.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "META_APP_REVIEW.md",
+        "docs/setup.md",
+        "lib/meta",
+        "app/api/webhook"
+      ]
+    },
+    "21-infraestructura.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "docker-compose.prod.yml",
+        "Dockerfile",
+        "scripts/cron.sh",
+        "scripts/backup-db.sh",
+        ".env.example",
+        "app/api/health"
+      ]
+    },
+    "22-integraciones.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "lib/maasy",
+        "lib/ai",
+        "lib/becommerce",
+        "app/api/webhooks/ecommerce",
+        ".env.example"
+      ]
+    },
+    "23-este-manual.md": {
+      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "paths": [
+        "scripts/manual",
+        "scripts/publish-manual.sh",
+        "docs/manual/README.md"
+      ]
+    }
+  }
+}

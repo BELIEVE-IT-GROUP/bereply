@@ -1,0 +1,10 @@
+{
+  "name": "bereply-manual",
+  "private": true,
+  "type": "module",
+  "description": "Herramientas de los manuales (fuera del workspace de pnpm: no entran a la imagen de Docker).",
+  "dependencies": {
+    "mermaid": "11.17.2",
+    "playwright-core": "1.61.1"
+  }
+}
