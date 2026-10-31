@@ -1,0 +1,19 @@
+docs/manual/manual.config.json
+  s_769bae67959473::t_71495f797d2f19 64,72,81,90,100,108,116,129,138,146,155,166,176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8577acf32e07028e7074b0fa88ba19bb3fd1d1f5",
+  "prompts": {},
+  "sessions": {
+    "s_769bae67959473": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92f4e551-8f46-416d-9997-7d476bc2e62c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
