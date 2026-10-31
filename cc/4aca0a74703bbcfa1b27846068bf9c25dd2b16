@@ -1,0 +1,23 @@
+docs/manual/secciones/20-meta.md
+  s_769bae67959473::t_823a2fc0cbd5c6 38
+docs/manual/operacion/CHANGELOG.md
+  s_769bae67959473::t_c373c048c5f751 5-8
+docs/manual/operacion/MANUAL-VERSION
+  s_769bae67959473::t_455e227ce31193 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc4aca0a74703bbcfa1b27846068bf9c25dd2b16",
+  "prompts": {},
+  "sessions": {
+    "s_769bae67959473": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92f4e551-8f46-416d-9997-7d476bc2e62c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
