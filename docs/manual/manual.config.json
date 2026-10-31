@@ -61,7 +61,7 @@
   },
   "sources": {
     "01-que-es.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "README.md",
         "app/(dashboard)/dashboard",
@@ -69,7 +69,7 @@
       ]
     },
     "02-primeros-pasos.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "app/(dashboard)/settings/page.tsx",
         "app/api/instagram",
@@ -78,7 +78,7 @@
       ]
     },
     "03-campanas.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "components/campaign-builder.tsx",
         "app/(dashboard)/campaigns",
@@ -87,7 +87,7 @@
       ]
     },
     "04-conocimiento-de-marca.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "app/(dashboard)/settings/page.tsx",
         "app/api/settings/knowledge",
@@ -97,7 +97,7 @@
       ]
     },
     "05-respuestas-con-ia.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "lib/ai/responder.ts",
         "components/campaign-ai-settings.tsx",
@@ -105,7 +105,7 @@
       ]
     },
     "06-flujos.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "components/flow-builder",
         "lib/flow",
@@ -113,7 +113,7 @@
       ]
     },
     "07-contactos-bandeja-resultados.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "app/(dashboard)/dashboard",
         "app/(dashboard)/overview",
@@ -126,7 +126,7 @@
       ]
     },
     "08-equipo-y-cuentas.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "lib/workspace.ts",
         "lib/workspace-access.ts",
@@ -135,7 +135,7 @@
       ]
     },
     "09-problemas-frecuentes.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "app/(dashboard)/diagnostics",
         "lib/queue/dm-worker.ts",
@@ -143,7 +143,7 @@
       ]
     },
     "20-meta.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "META_APP_REVIEW.md",
         "docs/setup.md",
@@ -152,7 +152,7 @@
       ]
     },
     "21-infraestructura.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "docker-compose.prod.yml",
         "Dockerfile",
@@ -163,7 +163,7 @@
       ]
     },
     "22-integraciones.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "lib/maasy",
         "lib/ai",
@@ -173,7 +173,7 @@
       ]
     },
     "23-este-manual.md": {
-      "sha": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
       "paths": [
         "scripts/manual",
         "scripts/publish-manual.sh",
