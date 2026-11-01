@@ -45,12 +45,14 @@ services:
         condition: service_healthy
       openreply-redis:
         condition: service_healthy
+    # 30 s: cada healthcheck es un runc exec que paga containerd (Contabo, 2026-10-31)
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://localhost:3000/api/health"]
-      interval: 15s
+      interval: 30s
       timeout: 5s
       retries: 10
       start_period: 30s
+      start_interval: 3s
     networks:
       - openreply-internal
       - coolify
