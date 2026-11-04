@@ -39,6 +39,7 @@ echo "[cron] scheduler started, target $BASE_URL"
 
 last_slot=""
 last_daily=""
+last_metrics=""
 
 while true; do
   now=$(date -u '+%Y-%m-%d %H:%M')
@@ -58,6 +59,12 @@ while true; do
       fi
       ;;
   esac
+
+  # BeFeed: metrics change slowly and each refresh costs one Meta call per post.
+  if [ "$minute" = "07" ] && [ "$last_metrics" != "$hour" ]; then
+    last_metrics="$hour"
+    call feed-metrics 300
+  fi
 
   # Once a day, early: the token refresh has a 10-day window before expiry, so
   # the exact hour does not matter — only that it happens every day.

@@ -86,6 +86,24 @@ services:
     networks:
       - openreply-internal
 
+  # BeFeed: produce los Reels (voz, cuadros, clips y armado). Guarda el trabajo en
+  # un volumen para que corregir el armado no vuelva a pagar imágenes ni clips.
+  openreply-reels:
+    build: .
+    container_name: openreply-reels
+    restart: always
+    env_file: .env
+    environment:
+      REEL_DATA: /data/reels
+    command: npm run reel-worker
+    volumes:
+      - openreply-reels:/data/reels
+    depends_on:
+      openreply-postgres:
+        condition: service_healthy
+    networks:
+      - openreply-internal
+
   openreply-cron:
     build: .
     container_name: openreply-cron
@@ -100,6 +118,7 @@ services:
 
 volumes:
   openreply-pgdata:
+  openreply-reels:
   openreply-redisdata:
 
 networks:

@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 # scripts/cron.sh calls the /api/cron routes with wget, which node:20-slim does
 # not include.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends wget ca-certificates \
+ && apt-get install -y --no-install-recommends wget ca-certificates ffmpeg python3 python3-pil python3-requests \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/node_modules ./node_modules
@@ -47,6 +47,8 @@ COPY --from=build /app/lib ./lib
 COPY --from=build /app/worker ./worker
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/tools ./tools
+COPY --from=build /app/assets ./assets
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/tsconfig.json ./tsconfig.json

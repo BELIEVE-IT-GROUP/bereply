@@ -100,6 +100,10 @@ export interface InstagramMediaInsights {
   saved?: number;
   shares?: number;
   total_interactions?: number;
+  /** Reels only, in milliseconds. */
+  ig_reels_avg_watch_time?: number;
+  /** Reels only, percentage of views skipped at the start. */
+  reels_skip_rate?: number;
 }
 
 interface TokenResponse {

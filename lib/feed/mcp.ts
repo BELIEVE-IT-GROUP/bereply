@@ -1,0 +1,344 @@
+/**
+ * El MCP de BeFeed: lo que Claude o George pueden hacer.
+ *
+ * Aprobar y publicar no están en esta lista a propósito. Lo que no existe aquí
+ * el agente no lo puede hacer, ni con un prompt ingenioso ni por error.
+ */
+import { z } from "zod";
+import { Prisma } from "@/app/generated/prisma/client";
+import { prisma } from "@/lib/db/client";
+import { fichaSchema, reelsPerDay, type Ficha } from "./ficha";
+import { skipSeparation, summarize, winners } from "./insights";
+import {
+  accountByUsername,
+  createWeek,
+  currentWeek,
+  gateState,
+  logEvent,
+  recentReels,
+  refreshAccountMetrics,
+  savePiece,
+  setBlocker,
+  stageFor,
+  submitPiece,
+} from "./service";
+import type { Actor } from "./stages";
+
+type Ctx = { workspaceId: string; actor: Actor };
+
+const cuenta = z.object({ cuenta: z.string().describe("Usuario de Instagram, por ejemplo cinemauniplaza") });
+const pieza = z.object({ pieza_id: z.string() });
+
+function shapeWeek(week: NonNullable<Awaited<ReturnType<typeof currentWeek>>>) {
+  return {
+    id: week.id,
+    desde: week.startsOn.toISOString().slice(0, 10),
+    hasta: week.endsOn.toISOString().slice(0, 10),
+    tema: week.theme,
+    accion_medible: week.measurableAction,
+    referencia: week.baseline,
+    piezas: week.pieces.map((p) => ({
+      id: p.id,
+      posicion: p.position,
+      dia: p.publishOn.toISOString().slice(0, 10),
+      formato: p.format,
+      titulo: p.title,
+      columna: stageFor(gateState(p)),
+      puertas_abiertas: p.gatesPassed,
+      frenada_por: p.blockedBy,
+      motivo: p.blockedReason,
+    })),
+    cierre: week.closing,
+  };
+}
+
+export const TOOLS = {
+  marcas: {
+    description: "Lista las cuentas de Instagram conectadas en este espacio.",
+    input: z.object({}),
+    run: async (_: object, { workspaceId }: Ctx) =>
+      prisma.instagramAccount.findMany({
+        where: { workspaceId },
+        select: { username: true, name: true, maasyProjectId: true },
+      }),
+  },
+  metricas: {
+    description: "Reels recientes de una cuenta con vistas, alcance, tiempo medio y tasa de salto, más medianas y ganadores.",
+    input: cuenta,
+    run: async ({ cuenta: u }: z.infer<typeof cuenta>, { workspaceId }: Ctx) => {
+      const account = await accountByUsername(workspaceId, u);
+      let reels = await recentReels(account.id);
+      if (reels.length === 0) {
+        await refreshAccountMetrics(account.id);
+        reels = await recentReels(account.id);
+      }
+      return {
+        resumen: summarize(reels),
+        ganadores: winners(reels).map((r) => ({ id: r.instagramMediaId, multiplo: r.multiple, texto: r.caption?.slice(0, 120) })),
+        separacion_de_salto: skipSeparation(reels),
+        reels: reels.map((r) => ({
+          id: r.instagramMediaId,
+          fecha: r.publishedAt.toISOString().slice(0, 10),
+          texto: r.caption?.slice(0, 120),
+          vistas: r.views,
+          alcance: r.reach,
+          guardados: r.saved,
+          compartidos: r.shares,
+          tiempo_medio_ms: r.avgWatchMs,
+          tasa_de_salto: r.skipRate,
+        })),
+      };
+    },
+  },
+  marca: {
+    description: "Lo que se sabe de una marca: norte, pilares, voz, prohibidas, datos que chocan y fuentes.",
+    input: cuenta,
+    run: async ({ cuenta: u }: z.infer<typeof cuenta>, { workspaceId }: Ctx) => {
+      const account = await accountByUsername(workspaceId, u);
+      return prisma.feedBrandProfile.findUnique({ where: { instagramAccountId: account.id } });
+    },
+  },
+  guardar_marca: {
+    description: "Guarda el perfil de una marca, leído de MAAS2 y Maasy. Reemplaza el anterior.",
+    input: cuenta.extend({
+      perfil: z.record(z.string(), z.unknown()),
+      datos_que_chocan: z.array(z.record(z.string(), z.unknown())).default([]),
+      fuentes: z.array(z.object({ name: z.string(), date: z.string() })).default([]),
+    }),
+    run: async (
+      i: { cuenta: string; perfil: object; datos_que_chocan: object[]; fuentes: object[] },
+      { workspaceId, actor }: Ctx
+    ) => {
+      const account = await accountByUsername(workspaceId, i.cuenta);
+      const data = {
+        profile: i.perfil as Prisma.InputJsonValue,
+        clashes: i.datos_que_chocan as Prisma.InputJsonValue,
+        sources: i.fuentes as Prisma.InputJsonValue,
+      };
+      await prisma.feedBrandProfile.upsert({
+        where: { instagramAccountId: account.id },
+        update: data,
+        create: { ...data, instagramAccountId: account.id },
+      });
+      await logEvent(workspaceId, actor, "guardar_marca", { detail: `@${account.username}` });
+      return { ok: true };
+    },
+  },
+  estado_semana: {
+    description: "La semana en curso de una cuenta: tema, acción medible y en qué columna va cada pieza.",
+    input: cuenta,
+    run: async ({ cuenta: u }: z.infer<typeof cuenta>, { workspaceId }: Ctx) => {
+      const week = await currentWeek((await accountByUsername(workspaceId, u)).id);
+      return week ? shapeWeek(week) : null;
+    },
+  },
+  ultimo_cierre: {
+    description: "El cierre más reciente de una cuenta. Es lo primero que se lee antes de escribir una semana.",
+    input: cuenta,
+    run: async ({ cuenta: u }: z.infer<typeof cuenta>, { workspaceId }: Ctx) => {
+      const account = await accountByUsername(workspaceId, u);
+      return prisma.feedWeekClosing.findFirst({
+        where: { week: { instagramAccountId: account.id }, closedAt: { not: null } },
+        orderBy: { closedAt: "desc" },
+        include: { week: { select: { startsOn: true, theme: true, measurableAction: true } } },
+      });
+    },
+  },
+  crear_semana: {
+    description: "Crea la semana de una cuenta, o actualiza su encabezado. Fechas en AAAA-MM-DD.",
+    input: cuenta.extend({
+      desde: z.string(),
+      hasta: z.string(),
+      tema: z.string(),
+      accion_medible: z.string(),
+      referencia: z.string().optional(),
+      resumen_loop: z.string().optional(),
+    }),
+    run: async (
+      i: { cuenta: string; desde: string; hasta: string; tema: string; accion_medible: string; referencia?: string; resumen_loop?: string },
+      { workspaceId, actor }: Ctx
+    ) => {
+      const week = await createWeek(
+        workspaceId,
+        {
+          username: i.cuenta,
+          startsOn: i.desde,
+          endsOn: i.hasta,
+          theme: i.tema,
+          measurableAction: i.accion_medible,
+          baseline: i.referencia,
+          loopSummary: i.resumen_loop,
+        },
+        actor
+      );
+      return { semana_id: week.id };
+    },
+  },
+  guardar_pieza: {
+    description:
+      "Crea o reescribe una pieza en guion. Pasa antes el texto por el linter de voz del skill e indica el resultado. Lo que ya está en revisión no se reescribe.",
+    input: z.object({
+      semana_id: z.string(),
+      posicion: z.number().int(),
+      dia: z.string(),
+      formato: z.enum(["REEL", "CARRUSEL", "HISTORIAS", "POST"]),
+      titulo: z.string(),
+      gota: z.string().nullish(),
+      primeros_3s: z.string().nullish(),
+      ganchos: z.array(z.object({ score: z.number().optional(), text: z.string(), chosen: z.boolean().optional() })).optional(),
+      guion: z.array(z.object({ time: z.string(), voice: z.string(), screen: z.string() })).optional(),
+      caption: z.string().nullish(),
+      historias: z.string().nullish(),
+      mide: z.string().nullish(),
+      lleva_video: z.boolean().optional(),
+      linter_limpio: z.boolean(),
+      frenada_por: z.string().nullable().optional(),
+      motivo: z.string().nullable().optional(),
+    }),
+    run: async (
+      i: {
+        semana_id: string;
+        posicion: number;
+        dia: string;
+        formato: "REEL" | "CARRUSEL" | "HISTORIAS" | "POST";
+        titulo: string;
+        gota?: string | null;
+        primeros_3s?: string | null;
+        ganchos?: Array<{ score?: number; text: string; chosen?: boolean }>;
+        guion?: Array<{ time: string; voice: string; screen: string }>;
+        caption?: string | null;
+        historias?: string | null;
+        mide?: string | null;
+        lleva_video?: boolean;
+        linter_limpio: boolean;
+        frenada_por?: string | null;
+        motivo?: string | null;
+      },
+      { workspaceId, actor }: Ctx
+    ) => {
+      const p = await savePiece(
+        workspaceId,
+        {
+          weekId: i.semana_id,
+          position: i.posicion,
+          publishOn: i.dia,
+          format: i.formato,
+          title: i.titulo,
+          drip: i.gota ?? undefined,
+          firstThree: i.primeros_3s ?? undefined,
+          hooks: i.ganchos,
+          script: i.guion,
+          caption: i.caption ?? undefined,
+          stories: i.historias ?? undefined,
+          measures: i.mide ?? undefined,
+          needsVideo: i.lleva_video,
+          linterClean: i.linter_limpio,
+          blockedBy: i.frenada_por,
+          blockedReason: i.motivo,
+        },
+        actor
+      );
+      return { pieza_id: p.id };
+    },
+  },
+  pasar_a_filtros: {
+    description: "Pide revisión de una pieza. No aprueba nada: desde ahí la mueven las personas.",
+    input: pieza,
+    run: async ({ pieza_id }: z.infer<typeof pieza>, { workspaceId, actor }: Ctx) => {
+      const p = await submitPiece(workspaceId, pieza_id, actor);
+      return { columna: stageFor(gateState(p)) };
+    },
+  },
+  frenar_pieza: {
+    description: "Marca que una pieza espera algo de alguien, o la suelta si quien es null.",
+    input: pieza.extend({ quien: z.string().nullable(), motivo: z.string().nullable().optional() }),
+    run: async (i: { pieza_id: string; quien: string | null; motivo?: string | null }, { workspaceId, actor }: Ctx) => {
+      await setBlocker(workspaceId, i.pieza_id, actor, i.quien, i.motivo ?? null);
+      return { ok: true };
+    },
+  },
+  pedir_reel: {
+    description:
+      "Encola la producción de un Reel a partir de su ficha (ver references/video.md del skill). Gasta dinero en fal y ElevenLabs por etapas y se detiene a revisión de cuadros antes de los clips.",
+    input: pieza.extend({ ficha: fichaSchema }),
+    run: async (i: { pieza_id: string; ficha: Ficha }, { workspaceId, actor }: Ctx) => {
+      const p = await prisma.feedPiece.findFirst({ where: { id: i.pieza_id, week: { workspaceId } }, include: { job: true } });
+      if (!p) throw new Error("Esa pieza no existe en este espacio.");
+      if (!p.needsVideo) throw new Error("Esa pieza no lleva video.");
+      if (p.blockedBy) throw new Error(`Está frenada: la tiene ${p.blockedBy}.`);
+      if (p.job && (p.job.status === "EN_COLA" || p.job.status === "CORRIENDO")) throw new Error("Ya se está produciendo.");
+      const hoy = await prisma.feedEvent.count({
+        where: { workspaceId, action: "pedir_reel", outcome: "ok", createdAt: { gte: new Date(Date.now() - 86_400_000) } },
+      });
+      if (hoy >= reelsPerDay()) {
+        const detail = `Tope de ${reelsPerDay()} Reels por día alcanzado.`;
+        await logEvent(workspaceId, actor, "pedir_reel", { pieceId: p.id, detail, outcome: "rechazado" });
+        throw new Error(detail);
+      }
+      const ficha = i.ficha as unknown as Prisma.InputJsonValue;
+      await prisma.feedReelJob.upsert({
+        where: { pieceId: p.id },
+        update: { ficha, step: "voz", status: "EN_COLA", log: null, audio: Prisma.DbNull },
+        create: { pieceId: p.id, ficha },
+      });
+      await logEvent(workspaceId, actor, "pedir_reel", { pieceId: p.id, detail: p.title });
+      return { en_cola: true };
+    },
+  },
+} as const;
+
+type ToolName = keyof typeof TOOLS;
+
+/** Convierte un esquema zod en el JSON Schema que espera MCP. */
+function schemaOf(input: z.ZodType) {
+  const schema = z.toJSONSchema(input) as Record<string, unknown>;
+  delete schema.$schema;
+  return schema;
+}
+
+const WRITES = new Set<ToolName>(["guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "pedir_reel"]);
+
+/** Atiende un mensaje JSON-RPC. Devuelve null para las notificaciones, que no llevan respuesta. */
+export async function handleRpc(message: { id?: unknown; method?: string; params?: Record<string, unknown> }, ctx: Ctx) {
+  const reply = (result: unknown) => ({ jsonrpc: "2.0", id: message.id ?? null, result });
+  const fail = (code: number, text: string) => ({ jsonrpc: "2.0", id: message.id ?? null, error: { code, message: text } });
+
+  switch (message.method) {
+    case "initialize":
+      return reply({
+        protocolVersion: (message.params?.protocolVersion as string) ?? "2025-03-26",
+        capabilities: { tools: {} },
+        serverInfo: { name: "befeed", version: "1.0.0" },
+        instructions:
+          "BeFeed guarda la operación de Instagram orgánico de cada marca. Lee ultimo_cierre, marca y metricas antes de escribir una semana. Tú propones: aprobar y publicar los hacen las personas en el panel.",
+      });
+    case "ping":
+      return reply({});
+    case "tools/list":
+      return reply({
+        tools: Object.entries(TOOLS).map(([name, t]) => ({
+          name,
+          description: t.description,
+          inputSchema: schemaOf(t.input),
+          annotations: { readOnlyHint: !WRITES.has(name as ToolName) },
+        })),
+      });
+    case "tools/call": {
+      const name = message.params?.name as ToolName;
+      const tool = TOOLS[name];
+      if (!tool) return fail(-32602, `No existe la herramienta ${String(name)}.`);
+      const args = tool.input.safeParse(message.params?.arguments ?? {});
+      const asResult = (text: string, isError = false) => reply({ content: [{ type: "text", text }], isError });
+      if (!args.success) return asResult(`Datos inválidos: ${args.error.message}`, true);
+      try {
+        const out = await (tool.run as (i: unknown, c: Ctx) => Promise<unknown>)(args.data, ctx);
+        return asResult(JSON.stringify(out ?? null));
+      } catch (error) {
+        return asResult(error instanceof Error ? error.message : "Falló la herramienta.", true);
+      }
+    }
+    default:
+      if (message.method?.startsWith("notifications/")) return null;
+      return fail(-32601, `Método desconocido: ${String(message.method)}`);
+  }
+}

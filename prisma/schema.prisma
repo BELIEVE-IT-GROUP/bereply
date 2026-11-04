@@ -96,6 +96,10 @@ model Workspace {
   webhookEvents     WebhookEvent[]
   operationalEvents OperationalEvent[]
   contacts          Contact[]
+  feedWeeks         FeedWeek[]
+  feedReferences    FeedReference[]
+  feedTokens        FeedAgentToken[]
+  feedEvents        FeedEvent[]
 
   @@index([ownerId])
 }
@@ -157,6 +161,10 @@ model InstagramAccount {
   linkClicks  LinkClick[]
   followerSnapshots FollowerSnapshot[]
   contacts    Contact[]
+  feedWeeks   FeedWeek[]
+  feedMetrics FeedMediaMetric[]
+  feedProfile FeedBrandProfile?
+  feedReferences FeedReference[]
 
   @@index([workspaceId])
 }
@@ -442,4 +450,207 @@ enum OperationalEventLevel {
   INFO
   WARNING
   ERROR
+}
+
+// ---------------------------------------------------------------------------
+// BeFeed: planeación, aprobación, producción y medición de Instagram orgánico.
+// ---------------------------------------------------------------------------
+
+enum FeedStage {
+  GUION
+  FILTROS
+  CLIENTE
+  VIDEO
+  LISTA
+  PUBLICADA
+}
+
+enum FeedFormat {
+  REEL
+  CARRUSEL
+  HISTORIAS
+  POST
+}
+
+enum FeedJobStatus {
+  EN_COLA
+  CORRIENDO
+  ESPERA_REVISION
+  LISTO
+  FALLO
+}
+
+model FeedWeek {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  instagramAccountId String
+  startsOn           DateTime @db.Date
+  endsOn             DateTime @db.Date
+  theme              String
+  measurableAction   String
+  baseline           String?
+  loopSummary        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  workspace        Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  pieces           FeedPiece[]
+  closing          FeedWeekClosing?
+
+  @@unique([instagramAccountId, startsOn])
+  @@index([workspaceId])
+}
+
+model FeedPiece {
+  id               String     @id @default(cuid())
+  weekId           String
+  position         Int
+  publishOn        DateTime   @db.Date
+  format           FeedFormat
+  drip             String?
+  title            String
+  firstThree       String?
+  /// [{ score, text, chosen }]
+  hooks            Json       @default("[]")
+  /// [{ time, voice, screen }]
+  script           Json       @default("[]")
+  caption          String?
+  stories          String?
+  measures         String?
+  needsVideo       Boolean    @default(false)
+  linterClean      Boolean    @default(false)
+  stage            FeedStage  @default(GUION)
+  /// Puertas ya abiertas: DANIELA, JORGE, CLIENTE, MP4.
+  gatesPassed      String[]   @default([])
+  blockedBy        String?
+  blockedReason    String?
+  videoUrl         String?
+  thumbnailUrl     String?
+  instagramMediaId String?
+  repeatDecision   String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  week   FeedWeek    @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  events FeedEvent[]
+  job    FeedReelJob?
+
+  @@index([weekId, position])
+}
+
+/// Registro de todo lo que pasó: personas y agentes, aprobaciones y herramientas.
+model FeedEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  pieceId     String?
+  actorType   String
+  actorName   String
+  action      String
+  detail      String?
+  outcome     String   @default("ok")
+  costUsd     Float?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  piece     FeedPiece? @relation(fields: [pieceId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([pieceId, createdAt])
+}
+
+model FeedMediaMetric {
+  id                 String   @id @default(cuid())
+  instagramAccountId String
+  instagramMediaId   String   @unique
+  productType        String
+  caption            String?
+  permalink          String?
+  thumbnailUrl       String?
+  publishedAt        DateTime
+  views              Int?
+  reach              Int?
+  saved              Int?
+  shares             Int?
+  likes              Int?
+  comments           Int?
+  avgWatchMs         Int?
+  skipRate           Float?
+  capturedAt         DateTime @default(now())
+
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@index([instagramAccountId, publishedAt])
+}
+
+model FeedBrandProfile {
+  id                 String   @id @default(cuid())
+  instagramAccountId String   @unique
+  /// { north, belief, pillars: [{ name, weight }], tone: [], fear, prohibited: [], ctas: [] }
+  profile            Json     @default("{}")
+  /// [{ topic, sourceA, sourceB, decider }]
+  clashes            Json     @default("[]")
+  /// [{ name, date }]
+  sources            Json     @default("[]")
+  updatedAt          DateTime @updatedAt
+
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+}
+
+model FeedWeekClosing {
+  id        String    @id @default(cuid())
+  weekId    String    @unique
+  value     String?
+  repeat    String?
+  drop      String?
+  pending   String?
+  closedAt  DateTime?
+  updatedAt DateTime  @updatedAt
+
+  week FeedWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+}
+
+model FeedReference {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  instagramAccountId String
+  username           String
+  note               String?
+  createdAt          DateTime @default(now())
+
+  workspace        Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([instagramAccountId, username])
+}
+
+model FeedAgentToken {
+  id          String    @id @default(cuid())
+  workspaceId String
+  label       String
+  tokenHash   String    @unique
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model FeedReelJob {
+  id        String        @id @default(cuid())
+  pieceId   String        @unique
+  /// La ficha que lee tools/reel.py.
+  ficha     Json          @default("{}")
+  step      String        @default("voz")
+  status    FeedJobStatus @default(EN_COLA)
+  log       String?
+  costUsd   Float?
+  /// { lufs, truePeakDb, durationS }
+  audio     Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  piece FeedPiece @relation(fields: [pieceId], references: [id], onDelete: Cascade)
 }
