@@ -165,6 +165,9 @@ model InstagramAccount {
   feedMetrics FeedMediaMetric[]
   feedProfile FeedBrandProfile?
   feedReferences FeedReference[]
+  feedWeekRequests FeedWeekRequest[]
+  /// Proyecto de esta marca en MAAS2, donde están sus tableros.
+  maas2ProjectId String?
 
   @@index([workspaceId])
 }
@@ -491,6 +494,7 @@ model FeedWeek {
   measurableAction   String
   baseline           String?
   loopSummary        String?
+  maasBoardId        String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -532,12 +536,21 @@ model FeedPiece {
   thumbnailUrl     String?
   instagramMediaId String?
   repeatDecision   String?
+  /// Quién hace la pieza: ESTUDIO o DISENO.
+  producedBy       String?
+  assigneeId       String?
+  assigneeName     String?
+  maasAssetId      String?
+  /// Última etapa que BeFeed vio en el tablero: si cambia, la cambió alguien allá.
+  maasStage        String?
+  maasSyncedAt     DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
   week   FeedWeek    @relation(fields: [weekId], references: [id], onDelete: Cascade)
   events FeedEvent[]
   job    FeedReelJob?
+  comments FeedPieceComment[]
 
   @@index([weekId, position])
 }
@@ -656,4 +669,46 @@ model FeedReelJob {
   updatedAt DateTime      @updatedAt
 
   piece FeedPiece @relation(fields: [pieceId], references: [id], onDelete: Cascade)
+}
+
+/// Comentarios que llegan desde el tablero de MAAS2.
+model FeedPieceComment {
+  id         String   @id @default(cuid())
+  pieceId    String
+  externalId String   @unique
+  author     String
+  content    String
+  createdAt  DateTime
+
+  piece FeedPiece @relation(fields: [pieceId], references: [id], onDelete: Cascade)
+
+  @@index([pieceId, createdAt])
+}
+
+model FeedWeekRequest {
+  id                 String   @id @default(cuid())
+  instagramAccountId String
+  startsOn           DateTime @db.Date
+  endsOn             DateTime @db.Date
+  measurableAction   String
+  rawMaterial        String?
+  requestedBy        String
+  /// EN_COLA, CORRIENDO, LISTO o FALLO.
+  status             String   @default("EN_COLA")
+  log                String?
+  weekId             String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
+
+/// La versión de cada skill que está usando BeFeed.
+model FeedSkillVersion {
+  name     String   @id
+  version  String
+  sha      String
+  syncedAt DateTime @default(now())
 }

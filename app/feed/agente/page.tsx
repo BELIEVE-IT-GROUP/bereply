@@ -18,13 +18,17 @@ const PERMISO: Record<string, { label: string; className: string }> = {
   frenar_pieza: { label: "Escribe borrador", className: "tag ok" },
   adjuntar_video: { label: "Escribe borrador", className: "tag ok" },
   pedir_reel: { label: "Gasta dinero", className: "tag azul" },
+  generar_semana: { label: "Gasta dinero", className: "tag azul" },
+  asignar_pieza: { label: "Escribe borrador", className: "tag ok" },
+  metodo: { label: "Solo lee", className: "tag" },
 };
 
 export default async function AgentePage() {
   const { workspaceId } = await feedContext();
-  const [tokens, eventos] = await Promise.all([
+  const [tokens, eventos, skills] = await Promise.all([
     prisma.feedAgentToken.findMany({ where: { workspaceId, revokedAt: null }, orderBy: { createdAt: "asc" } }),
     prisma.feedEvent.findMany({ where: { workspaceId, actorType: "agent" }, orderBy: { createdAt: "desc" }, take: 12 }),
+    prisma.feedSkillVersion.findMany({ orderBy: { name: "asc" } }),
   ]);
   const url = `${(process.env.NEXTAUTH_URL ?? "").replace(/\/$/, "")}/api/mcp`;
 
@@ -53,6 +57,21 @@ export default async function AgentePage() {
           </div>
         </section>
       </div>
+
+      <section className="plano">
+        <h2 className="s">Con qué método trabaja</h2>
+        {skills.length === 0 ? <p className="sub">Todavía no se han bajado los skills.</p> : null}
+        <div className="lista">
+          {skills.map((s) => (
+            <div key={s.name}>
+              <span style={{ flex: "1 1 200px" }}>{s.name}<br /><span className="mute" style={{ fontSize: 13 }}>Se actualizó {moment(s.syncedAt)}</span></span>
+              <span className="tag ok">{s.version}</span>
+              <span className="mono mute">{s.sha.slice(0, 7)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="sub" style={{ fontSize: 13 }}>Cada mejora que llega a GitHub entra aquí sola en menos de 5 minutos.</p>
+      </section>
 
       <section className="plano">
         <h2 className="s">Qué puede hacer</h2>

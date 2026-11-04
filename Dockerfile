@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 # scripts/cron.sh calls the /api/cron routes with wget, which node:20-slim does
 # not include.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends wget ca-certificates ffmpeg python3 python3-pil python3-requests \
+ && apt-get install -y --no-install-recommends wget ca-certificates ffmpeg git openssh-client python3 python3-pil python3-requests \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/node_modules ./node_modules

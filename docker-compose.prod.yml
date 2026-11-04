@@ -46,6 +46,11 @@ services:
     restart: always
     env_file: .env
     command: sh -c "npm run db:migrate && npm start"
+    environment:
+      REEL_DATA: /data/reels
+    # Solo lectura: de aquí sale el método de los skills que se le entrega al agente.
+    volumes:
+      - openreply-reels:/data/reels:ro
     depends_on:
       openreply-postgres:
         condition: service_healthy

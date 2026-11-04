@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { recentReels } from "@/lib/feed/service";
-import { chooseAccountAction } from "../actions";
+import { listProjects } from "@/lib/feed/maas2";
+import { chooseAccountAction, linkProjectAction } from "../actions";
 import { day, Head } from "../ui";
 
 export default async function CuentasPage() {
   const { accounts, account } = await feedContext();
+  const proyectos = await listProjects().catch(() => []);
   const filas = await Promise.all(
     accounts.map(async (a) => ({
       a,
@@ -32,12 +34,22 @@ export default async function CuentasPage() {
       <section className="plano">
         <div className="caja">
           <table className="tb">
-            <thead><tr><th>Cuenta</th><th>Marca en Maasy</th><th>Métricas</th><th>Arranque</th><th>Token vence</th><th></th></tr></thead>
+            <thead><tr><th>Cuenta</th><th>Marca en Maasy</th><th>Tablero en MAAS2</th><th>Métricas</th><th>Arranque</th><th>Token vence</th><th></th></tr></thead>
             <tbody>
               {filas.map(({ a, reels, perfil }) => (
                 <tr key={a.id}>
                   <td className="n">@{a.username}</td>
                   <td>{a.maasyProjectId ? <span className="tag ok">Vinculada</span> : <span className="tag">Por vincular</span>}</td>
+                  <td>
+                    <form action={linkProjectAction} className="fila" style={{ gap: 6, flexWrap: "nowrap" }}>
+                      <input type="hidden" name="accountId" value={a.id} />
+                      <select className="input" name="projectId" defaultValue={a.maas2ProjectId ?? ""} aria-label={`Proyecto de @${a.username} en MAAS2`} style={{ minWidth: 150 }}>
+                        <option value="">Sin vincular</option>
+                        {proyectos.map((p) => <option key={p.id} value={p.id}>{p.brand_name}</option>)}
+                      </select>
+                      <button className="btn" type="submit">Guardar</button>
+                    </form>
+                  </td>
                   <td>{reels > 0 ? "Entran" : <span className="mute">Sin leer</span>}</td>
                   <td>{perfil ? <span className="tag ok">Hecho</span> : <span className="tag">Falta</span>}</td>
                   <td className="n">{a.tokenExpiresAt ? day(a.tokenExpiresAt, { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>

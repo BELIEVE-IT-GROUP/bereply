@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/client";
 import { getMediaInsights, getUserMedia, PermissionError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/oauth";
 import { videoUrlSchema } from "./ficha";
+import { pushPiece } from "./maas2";
 import { makePoster } from "./media";
 import {
   approve,
@@ -33,6 +34,19 @@ export async function logEvent(
   await prisma.feedEvent.create({
     data: { workspaceId, actorType: actor.type, actorName: actor.name, action, ...extra },
   });
+}
+
+/** Copia al tablero sin frenar lo que estaba haciendo la persona. El ciclo de 5 minutos reintenta. */
+export async function pushQuietly(pieceId: string, workspaceId: string) {
+  try {
+    await pushPiece(pieceId);
+  } catch (error) {
+    await logEvent(workspaceId, { type: "agent", name: "Tablero" }, "copiar_al_tablero", {
+      pieceId,
+      detail: error instanceof Error ? error.message.slice(0, 200) : "falló",
+      outcome: "error",
+    });
+  }
 }
 
 export function gateState(p: FeedPiece): PieceGateState {
@@ -85,6 +99,7 @@ async function transition(
     data: { stage: next.stage, gatesPassed: next.gatesPassed, instagramMediaId: next.instagramMediaId },
   });
   await logEvent(workspaceId, actor, action, { pieceId, detail });
+  await pushQuietly(pieceId, workspaceId);
   return updated;
 }
 
@@ -135,6 +150,7 @@ export async function attachVideo(workspaceId: string, pieceId: string, url: str
     },
   });
   await logEvent(workspaceId, actor, "adjuntar_video", { pieceId, detail: parsed.data });
+  await pushQuietly(pieceId, workspaceId);
   return updated;
 }
 
@@ -216,7 +232,70 @@ export async function savePiece(workspaceId: string, input: PieceInput, actor: A
     ? await prisma.feedPiece.update({ where: { id: existing.id }, data })
     : await prisma.feedPiece.create({ data: { ...data, weekId: week.id, position: input.position } });
   await logEvent(workspaceId, actor, "guardar_pieza", { pieceId: piece.id, detail: input.title });
+  if (piece.maasAssetId) await pushQuietly(piece.id, workspaceId);
   return piece;
+}
+
+/** Quién hace la pieza: el Estudio o una persona del equipo. */
+export async function assignPiece(
+  workspaceId: string,
+  pieceId: string,
+  who: { producedBy: "ESTUDIO" | "DISENO"; assigneeId?: string | null; assigneeName?: string | null },
+  actor: Actor
+) {
+  await pieceInWorkspace(workspaceId, pieceId);
+  await prisma.feedPiece.update({
+    where: { id: pieceId },
+    data: { producedBy: who.producedBy, assigneeId: who.assigneeId ?? null, assigneeName: who.assigneeName ?? null },
+  });
+  await logEvent(workspaceId, actor, "asignar_pieza", { pieceId, detail: who.assigneeName ?? "Estudio" });
+  await pushQuietly(pieceId, workspaceId);
+}
+
+/** Encola la generación de una semana. Lo hace el worker: tarda minutos. */
+export async function requestWeek(
+  workspaceId: string,
+  input: { username: string; startsOn: string; endsOn: string; measurableAction: string; rawMaterial?: string | null },
+  actor: Actor
+) {
+  const account = await accountByUsername(workspaceId, input.username);
+  const startsOn = new Date(input.startsOn);
+  const endsOn = new Date(input.endsOn);
+  if (Number.isNaN(startsOn.getTime()) || Number.isNaN(endsOn.getTime()) || endsOn < startsOn) {
+    throw new GateError("Revisa las fechas de la semana.");
+  }
+  const existente = await prisma.feedWeek.findUnique({
+    where: { instagramAccountId_startsOn: { instagramAccountId: account.id, startsOn } },
+    select: { _count: { select: { pieces: true } } },
+  });
+  if (existente && existente._count.pieces > 0) throw new GateError("Esa semana ya tiene piezas. Bórrala primero si quieres generarla de nuevo.");
+  const enCurso = await prisma.feedWeekRequest.findFirst({
+    where: { instagramAccountId: account.id, startsOn, status: { in: ["EN_COLA", "CORRIENDO"] } },
+  });
+  if (enCurso) throw new GateError("Esa semana ya se está generando.");
+  const req = await prisma.feedWeekRequest.create({
+    data: {
+      instagramAccountId: account.id,
+      startsOn,
+      endsOn,
+      measurableAction: input.measurableAction,
+      rawMaterial: input.rawMaterial,
+      requestedBy: actor.name,
+    },
+  });
+  await logEvent(workspaceId, actor, "generar_semana", { detail: `@${account.username} ${input.startsOn}` });
+  return req;
+}
+
+/** Borra una semana completa. Lo publicado o lo que ya vio el cliente no se borra desde aquí. */
+export async function deleteWeek(workspaceId: string, weekId: string, actor: Actor) {
+  const week = await prisma.feedWeek.findFirst({ where: { id: weekId, workspaceId }, include: { pieces: true, instagramAccount: { select: { username: true } } } });
+  if (!week) throw new GateError("Esa semana no existe en este espacio.");
+  if (week.pieces.some((p) => p.instagramMediaId)) throw new GateError("Tiene piezas publicadas: no se borra.");
+  if (week.pieces.some((p) => p.maasAssetId)) throw new GateError("Tiene piezas en el tablero del cliente: quítalas primero allá.");
+  await prisma.feedEvent.updateMany({ where: { pieceId: { in: week.pieces.map((p) => p.id) } }, data: { pieceId: null } });
+  await prisma.feedWeek.delete({ where: { id: weekId } });
+  await logEvent(workspaceId, actor, "borrar_semana", { detail: `@${week.instagramAccount.username} ${week.startsOn.toISOString().slice(0, 10)}: ${week.pieces.length} piezas` });
 }
 
 /** Trae de Meta las piezas recientes de una cuenta y sus métricas. Devuelve cuántas leyó. */
@@ -270,7 +349,7 @@ export async function recentReels(accountId: string, take = 8) {
 
 /** La semana en curso, o la más reciente si ya no hay una en curso. */
 export async function currentWeek(accountId: string) {
-  const include = { pieces: { orderBy: { position: "asc" as const } }, closing: true };
+  const include = { pieces: { orderBy: { position: "asc" as const }, include: { comments: { orderBy: { createdAt: "asc" as const } } } }, closing: true };
   const today = new Date(new Date().toISOString().slice(0, 10));
   return (
     (await prisma.feedWeek.findFirst({
@@ -284,6 +363,14 @@ export async function currentWeek(accountId: string) {
       include,
     }))
   );
+}
+
+/** Una semana por su inicio, con lo mismo que trae currentWeek. */
+export async function weekByStart(accountId: string, startsOn: string) {
+  return prisma.feedWeek.findUnique({
+    where: { instagramAccountId_startsOn: { instagramAccountId: accountId, startsOn: new Date(startsOn) } },
+    include: { pieces: { orderBy: { position: "asc" }, include: { comments: { orderBy: { createdAt: "asc" } } } }, closing: true },
+  });
 }
 
 export { stageFor };

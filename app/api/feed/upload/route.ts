@@ -3,7 +3,7 @@ import type { Prisma } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/client";
 import { ALLOWED_UPLOADS, makePoster, MAX_UPLOAD_BYTES, storeUpload } from "@/lib/feed/media";
-import { logEvent } from "@/lib/feed/service";
+import { logEvent, pushQuietly } from "@/lib/feed/service";
 import { ensureWorkspaceForUser } from "@/lib/workspace";
 
 export const maxDuration = 300;
@@ -61,5 +61,6 @@ export async function POST(request: NextRequest) {
     "subir_archivos",
     { pieceId: piece.id, detail: `${files.length} archivo(s)` }
   );
+  await pushQuietly(piece.id, workspace.id);
   return NextResponse.json({ ok: true });
 }

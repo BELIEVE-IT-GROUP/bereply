@@ -7,15 +7,19 @@ import { prisma } from "@/lib/db/client";
 import { ACCOUNT_COOKIE, feedContext } from "@/lib/feed/context";
 import {
   approvePiece,
+  assignPiece,
   attachVideo,
+  deleteWeek,
   logEvent,
   publishPiece,
   refreshAccountMetrics,
   requestPieceChanges,
+  requestWeek,
   savePiece,
   setBlocker,
   submitPiece,
 } from "@/lib/feed/service";
+import { listTeam } from "@/lib/feed/maas2";
 import { GATES, GateError, type Gate } from "@/lib/feed/stages";
 import { hashAgentToken, newAgentToken } from "@/lib/feed/tokens";
 
@@ -194,4 +198,62 @@ export async function removeAssetAction(form: FormData) {
   });
   await logEvent(workspaceId, actor, "quitar_imagen", { pieceId });
   revalidatePath("/feed", "layout");
+}
+
+export async function assignAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  const value = text(form, "assignee");
+  await onPiece(form, async (id) => {
+    if (value === "ESTUDIO") return assignPiece(workspaceId, id, { producedBy: "ESTUDIO" }, actor);
+    const member = (await listTeam()).find((m) => m.id === value);
+    if (!member) throw new GateError("Esa persona no está en el equipo.");
+    return assignPiece(workspaceId, id, { producedBy: "DISENO", assigneeId: member.id, assigneeName: member.name }, actor);
+  });
+}
+
+export async function linkProjectAction(form: FormData) {
+  const { accounts, workspaceId, actor } = await feedContext();
+  const account = accounts.find((a) => a.id === text(form, "accountId"));
+  if (!account) return;
+  const maas2ProjectId = text(form, "projectId");
+  await prisma.instagramAccount.update({ where: { id: account.id }, data: { maas2ProjectId } });
+  await logEvent(workspaceId, actor, "vincular_tablero", { detail: `@${account.username}` });
+  revalidatePath("/feed", "layout");
+}
+
+export async function generateWeekAction(form: FormData) {
+  const { workspaceId, actor, account } = await feedContext();
+  if (!account) return;
+  let error = "";
+  try {
+    await requestWeek(
+      workspaceId,
+      {
+        username: account.username,
+        startsOn: text(form, "desde") ?? "",
+        endsOn: text(form, "hasta") ?? "",
+        measurableAction: text(form, "accion") ?? "",
+        rawMaterial: text(form, "materia"),
+      },
+      actor
+    );
+  } catch (e) {
+    if (!(e instanceof GateError)) throw e;
+    error = e.message;
+  }
+  revalidatePath("/feed/semana", "layout");
+  redirect(`/feed/semana/generar${error ? `?error=${encodeURIComponent(error)}` : ""}`);
+}
+
+export async function deleteWeekAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  let error = "";
+  try {
+    await deleteWeek(workspaceId, text(form, "weekId") ?? "", actor);
+  } catch (e) {
+    if (!(e instanceof GateError)) throw e;
+    error = e.message;
+  }
+  revalidatePath("/feed", "layout");
+  redirect(`/feed/semana${error ? `?error=${encodeURIComponent(error)}` : ""}`);
 }

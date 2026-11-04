@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { gateState, stageFor } from "@/lib/feed/service";
+import { listTeam } from "@/lib/feed/maas2";
 import { GATES, nextGate, type Gate } from "@/lib/feed/stages";
-import { approveAction, attachVideoAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
+import { approveAction, assignAction, attachVideoAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
 import { PieceMedia, UploadForm } from "../../media";
 import { sendToStudioAction } from "../../studio-actions";
 import { FORMAT_LABEL, GATE_HINT, GATE_LABEL, STAGE_LABEL } from "../../gates";
@@ -25,7 +26,7 @@ export default async function PiezaPage({
   const { workspaceId } = await feedContext();
   const piece = await prisma.feedPiece.findFirst({
     where: { id, week: { workspaceId } },
-    include: { week: true, job: true, events: { orderBy: { createdAt: "desc" }, take: 8 } },
+    include: { week: true, job: true, comments: { orderBy: { createdAt: "asc" } }, events: { orderBy: { createdAt: "desc" }, take: 8 } },
   });
   if (!piece) notFound();
 
@@ -44,6 +45,7 @@ export default async function PiezaPage({
           take: 10,
         })
       : [];
+  const equipo = await listTeam().catch(() => []);
   const hidden = <input type="hidden" name="pieceId" value={piece.id} />;
 
   return (
@@ -78,6 +80,7 @@ export default async function PiezaPage({
           <div className="fila" style={{ gap: 6 }}>
             <span className="tag">{STAGE_LABEL[stage]}</span>
             {piece.linterClean ? <span className="tag ok">Linter limpio</span> : <span className="tag freno">Linter pendiente</span>}
+            {piece.maasAssetId ? <span className="tag ok">En el tablero</span> : <span className="tag">Aún no va al tablero</span>}
           </div>
           {piece.measures ? <div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span className="rot">Qué mide</span><span>{piece.measures}</span></div> : null}
           {piece.firstThree ? <div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span className="rot">Primeros 3 s</span><span style={{ fontSize: 13 }}>{piece.firstThree}</span></div> : null}
@@ -112,6 +115,18 @@ export default async function PiezaPage({
           {piece.caption ? <div className="plano"><h2 className="s">Caption</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.caption}</p></div> : null}
           {piece.stories ? <div className="plano"><h2 className="s">Historias</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.stories}</p></div> : null}
           {script.length === 0 && !piece.caption ? <p className="aviso">Esta pieza aún no tiene texto. Pídeselo al agente con <span className="mono">guardar_pieza</span>.</p> : null}
+          {piece.comments.length > 0 ? (
+            <div className="plano" style={{ gap: 2 }}>
+              <h2 className="s" style={{ marginBottom: 6 }}>Comentarios del tablero</h2>
+              <div className="lista">
+                {piece.comments.map((c) => (
+                  <div key={c.id}>
+                    <span style={{ flex: "1 1 280px" }}><span className="rot">{moment(c.createdAt)} · {c.author}</span><br />{c.content}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="plano" style={{ gap: 2 }}>
             <h2 className="s" style={{ marginBottom: 6 }}>Historial</h2>
             <div className="lista">
@@ -139,6 +154,19 @@ export default async function PiezaPage({
             })}
             <div className="pt"><span className={`m ${stage === "PUBLICADA" ? "ok" : stage === "LISTA" ? "ahora" : ""}`} /><div><b style={{ fontWeight: 500 }}>Publicación</b><br /><span className="mute" style={{ fontSize: 13 }}>La hace una persona, el {day(piece.publishOn, { day: "numeric", month: "long" })}</span></div></div>
           </section>
+
+          {stage !== "PUBLICADA" ? (
+            <form action={assignAction} className="card">
+              {hidden}
+              <label className="s" htmlFor="assignee">Quién la hace</label>
+              <select className="input" id="assignee" name="assignee" defaultValue={piece.assigneeId ?? (piece.producedBy === "ESTUDIO" ? "ESTUDIO" : "")} required>
+                <option value="" disabled>Sin asignar</option>
+                <option value="ESTUDIO">Estudio de BeFeed</option>
+                {equipo.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+              <button className="btn" type="submit">Asignar</button>
+            </form>
+          ) : null}
 
           {stage === "LISTA" ? (
             <form action={publishAction} className="card">

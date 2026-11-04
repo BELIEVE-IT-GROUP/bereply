@@ -15,7 +15,7 @@ export async function feedContext() {
   const accounts = await prisma.instagramAccount.findMany({
     where: { workspaceId: workspace.id },
     orderBy: { connectedAt: "asc" },
-    select: { id: true, username: true, name: true, maasyProjectId: true, tokenExpiresAt: true, connectedAt: true },
+    select: { id: true, username: true, name: true, maasyProjectId: true, maas2ProjectId: true, tokenExpiresAt: true, connectedAt: true },
   });
   const chosen = (await cookies()).get(ACCOUNT_COOKIE)?.value;
   const account = accounts.find((a) => a.id === chosen) ?? accounts[0] ?? null;

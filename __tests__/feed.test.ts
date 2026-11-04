@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
 import { planFromScript } from "@/lib/feed/draft-ficha";
+import { textsToLint } from "@/lib/feed/generate";
+import { boardName, boardStage, readyForBoard } from "@/lib/feed/maas2";
 import { fichaSchema, videoUrlSchema } from "@/lib/feed/ficha";
 import { median, skipSeparation, summarize, winners, worstHook, type ReelStats } from "@/lib/feed/insights";
 import {
@@ -245,5 +248,76 @@ describe("del guion a la ficha", () => {
     expect(() => assertCanProduce({ gatesPassed: ["DANIELA"], blockedBy: null })).toThrow("Jorge");
     expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: "Luis" })).toThrow("Luis");
     expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: null })).not.toThrow();
+  });
+});
+
+describe("tablero de MAAS2", () => {
+  const base = { instagramMediaId: null, needsVideo: true, videoUrl: null, maasStage: null };
+
+  it("nombra el tablero como lo nombra el equipo", () => {
+    expect(boardName(new Date("2026-11-12"), new Date("2026-11-18"))).toBe("Semana 12 - 18 nov");
+    expect(boardName(new Date("2026-11-26"), new Date("2026-12-02"))).toBe("Semana 26 nov - 2 dic");
+  });
+
+  it("no copia nada que no haya pasado los dos filtros", () => {
+    expect(readyForBoard({ gatesPassed: ["DANIELA"], maasAssetId: null })).toBe(false);
+    expect(readyForBoard({ gatesPassed: ["DANIELA", "JORGE"], maasAssetId: null })).toBe(true);
+    expect(readyForBoard({ gatesPassed: [], maasAssetId: "ya-copiada" })).toBe(true);
+  });
+
+  it("muestra al cliente solo lo que le toca revisar", () => {
+    expect(boardStage({ ...base, gatesPassed: ["DANIELA"] })).toBe("draft");
+    expect(boardStage({ ...base, gatesPassed: ["DANIELA", "JORGE"] })).toBe("client_review");
+    expect(boardStage({ ...base, gatesPassed: ["DANIELA", "JORGE", "CLIENTE"] })).toBe("approved");
+    expect(boardStage({ ...base, instagramMediaId: "1", gatesPassed: [] })).toBe("published");
+  });
+
+  it("le vuelve a pedir revisión al cliente cuando llega el video", () => {
+    const conVideo = { ...base, videoUrl: "https://x/a.mp4", gatesPassed: ["DANIELA", "JORGE", "CLIENTE"] };
+    expect(boardStage(conVideo)).toBe("client_review");
+    expect(boardStage({ ...conVideo, gatesPassed: [...conVideo.gatesPassed, "MP4"] })).toBe("approved");
+  });
+
+  it("deja visible el rechazo del cliente hasta que la pieza vuelva", () => {
+    expect(boardStage({ ...base, maasStage: "rejected", gatesPassed: [] })).toBe("rejected");
+    expect(boardStage({ ...base, maasStage: "rejected", gatesPassed: ["DANIELA", "JORGE"] })).toBe("client_review");
+  });
+
+  const pieza = { maasStage: "client_review", gatesPassed: ["DANIELA", "JORGE"], stage: "CLIENTE", instagramMediaId: null, videoUrl: null };
+
+  it("una aprobación en el tablero abre la puerta que sigue", () => {
+    expect(decideFromBoard(pieza, "approved")).toBe("CLIENTE");
+    const conVideo = { ...pieza, gatesPassed: [...pieza.gatesPassed, "CLIENTE"], videoUrl: "https://x/a.mp4" };
+    expect(decideFromBoard(conVideo, "approved")).toBe("MP4");
+    expect(decideFromBoard({ ...conVideo, gatesPassed: [...conVideo.gatesPassed, "MP4"] }, "approved")).toBeNull();
+  });
+
+  it("un rechazo devuelve la pieza, y lo que no cambió no hace nada", () => {
+    expect(decideFromBoard(pieza, "rejected")).toBe("rechazar");
+    expect(decideFromBoard({ ...pieza, stage: "GUION" }, "rejected")).toBeNull();
+    expect(decideFromBoard(pieza, "client_review")).toBeNull();
+    expect(decideFromBoard({ ...pieza, instagramMediaId: "1" }, "approved")).toBeNull();
+  });
+
+  it("separa video e imágenes de lo que suben al tablero", () => {
+    expect(filesFromBoard({ id: "a", stage: null, file_url: "inline", file_type: "text/markdown", metadata: null })).toEqual({ videoUrl: null, images: [] });
+    const out = filesFromBoard({
+      id: "a",
+      stage: null,
+      file_url: "https://x/a.mp4",
+      file_type: "video/mp4",
+      metadata: { carousel_files: [{ url: "https://x/a.mp4", type: "video/mp4" }, { url: "https://x/b.jpg", type: "image/jpeg", name: "b" }] },
+    });
+    expect(out).toEqual({ videoUrl: "https://x/a.mp4", images: [{ url: "https://x/b.jpg", name: "b" }] });
+  });
+});
+
+describe("linter de la semana generada", () => {
+  it("revisa la voz de un Reel sin acotaciones, y el caption", () => {
+    const out = textsToLint({ formato: "REEL", caption: "Texto", guion: [{ voice: "Hola (sonríe) mundo" }] });
+    expect(out).toEqual([{ texto: "Hola  mundo", modo: "reel" }, { texto: "Texto", modo: "caption" }]);
+  });
+  it("un carrusel solo revisa el caption", () => {
+    expect(textsToLint({ formato: "CARRUSEL", caption: "Texto", guion: [] })).toEqual([{ texto: "Texto", modo: "caption" }]);
   });
 });

@@ -9,8 +9,11 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
 import { fichaSchema, reelsPerDay, type Ficha } from "./ficha";
 import { skipSeparation, summarize, winners } from "./insights";
+import { listTeam } from "./maas2";
+import { instagramMethod } from "./skills";
 import {
   accountByUsername,
+  assignPiece,
   attachVideo,
   createWeek,
   currentWeek,
@@ -18,10 +21,12 @@ import {
   logEvent,
   recentReels,
   refreshAccountMetrics,
+  requestWeek,
   savePiece,
   setBlocker,
   stageFor,
   submitPiece,
+  weekByStart,
 } from "./service";
 import { assertCanProduce, type Actor } from "./stages";
 
@@ -29,6 +34,8 @@ type Ctx = { workspaceId: string; actor: Actor };
 
 const cuenta = z.object({ cuenta: z.string().describe("Usuario de Instagram, por ejemplo cinemauniplaza") });
 const pieza = z.object({ pieza_id: z.string() });
+
+const fechaRe = /^\d{4}-\d{2}-\d{2}$/;
 
 function shapeWeek(week: NonNullable<Awaited<ReturnType<typeof currentWeek>>>) {
   return {
@@ -48,6 +55,9 @@ function shapeWeek(week: NonNullable<Awaited<ReturnType<typeof currentWeek>>>) {
       puertas_abiertas: p.gatesPassed,
       frenada_por: p.blockedBy,
       motivo: p.blockedReason,
+      hecha_por: p.assigneeName ?? (p.producedBy === "ESTUDIO" ? "Estudio" : null),
+      en_tablero: Boolean(p.maasAssetId),
+      comentarios_del_tablero: p.comments.map((c) => ({ autor: c.author, texto: c.content, fecha: c.createdAt })),
     })),
     cierre: week.closing,
   };
@@ -126,11 +136,53 @@ export const TOOLS = {
     },
   },
   estado_semana: {
-    description: "La semana en curso de una cuenta: tema, acción medible y en qué columna va cada pieza.",
-    input: cuenta,
-    run: async ({ cuenta: u }: z.infer<typeof cuenta>, { workspaceId }: Ctx) => {
-      const week = await currentWeek((await accountByUsername(workspaceId, u)).id);
+    description: "Una semana de una cuenta: tema, acción medible, en qué columna va cada pieza y los comentarios del tablero. Sin fecha, la semana en curso.",
+    input: cuenta.extend({ desde: z.string().regex(fechaRe).nullish().describe("Inicio de la semana, AAAA-MM-DD") }),
+    run: async ({ cuenta: u, desde }: { cuenta: string; desde?: string | null }, { workspaceId }: Ctx) => {
+      const { id } = await accountByUsername(workspaceId, u);
+      const week = desde ? await weekByStart(id, desde) : await currentWeek(id);
       return week ? shapeWeek(week) : null;
+    },
+  },
+  metodo: {
+    description: "El método de Instagram de Believe, siempre en su última versión. Sin sección da la guía y la lista de secciones.",
+    input: z.object({ seccion: z.string().nullish().describe("Por ejemplo oficio, piezas, video o metodo-maas") }),
+    run: async ({ seccion }: { seccion?: string | null }) => (await instagramMethod(seccion ?? undefined)) ?? "El método todavía no se ha bajado.",
+  },
+  generar_semana: {
+    description:
+      "Encola la generación de una semana completa, con la estrategia de la marca, su voz, el último cierre y los ganadores. Tarda minutos y gasta en el modelo: revisa después con estado_semana.",
+    input: cuenta.extend({
+      desde: z.string().regex(fechaRe),
+      hasta: z.string().regex(fechaRe),
+      accion_medible: z.string().min(3),
+      materia_prima: z.string().nullish().describe("Cartelera, promos y datos reales. Lo que falte queda como dato por resolver."),
+    }),
+    run: async (
+      i: { cuenta: string; desde: string; hasta: string; accion_medible: string; materia_prima?: string | null },
+      { workspaceId, actor }: Ctx
+    ) => {
+      const req = await requestWeek(
+        workspaceId,
+        { username: i.cuenta, startsOn: i.desde, endsOn: i.hasta, measurableAction: i.accion_medible, rawMaterial: i.materia_prima },
+        actor
+      );
+      return { en_cola: true, solicitud_id: req.id };
+    },
+  },
+  asignar_pieza: {
+    description: "Dice quién hace una pieza: el Estudio, o una persona del equipo por su nombre.",
+    input: pieza.extend({ quien: z.string().describe("Estudio, o el nombre de la persona") }),
+    run: async ({ pieza_id, quien }: { pieza_id: string; quien: string }, { workspaceId, actor }: Ctx) => {
+      if (quien.trim().toLowerCase() === "estudio") {
+        await assignPiece(workspaceId, pieza_id, { producedBy: "ESTUDIO" }, actor);
+        return { ok: true };
+      }
+      const equipo = await listTeam();
+      const encontrados = equipo.filter((m) => m.name.toLowerCase().includes(quien.trim().toLowerCase()));
+      if (encontrados.length !== 1) throw new Error(`Hay ${encontrados.length} personas con ese nombre. Equipo: ${equipo.map((m) => m.name).join(", ")}.`);
+      await assignPiece(workspaceId, pieza_id, { producedBy: "DISENO", assigneeId: encontrados[0].id, assigneeName: encontrados[0].name }, actor);
+      return { ok: true, asignada_a: encontrados[0].name };
     },
   },
   ultimo_cierre: {
@@ -305,7 +357,7 @@ function schemaOf(input: z.ZodType) {
   return schema;
 }
 
-const WRITES = new Set<ToolName>(["guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "adjuntar_video", "pedir_reel"]);
+const WRITES = new Set<ToolName>(["generar_semana", "asignar_pieza", "guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "adjuntar_video", "pedir_reel"]);
 
 /** Atiende un mensaje JSON-RPC. Devuelve null para las notificaciones, que no llevan respuesta. */
 export async function handleRpc(message: { id?: unknown; method?: string; params?: Record<string, unknown> }, ctx: Ctx) {
@@ -319,7 +371,7 @@ export async function handleRpc(message: { id?: unknown; method?: string; params
         capabilities: { tools: {} },
         serverInfo: { name: "befeed", version: "1.0.0" },
         instructions:
-          "BeFeed guarda la operación de Instagram orgánico de cada marca. Lee ultimo_cierre, marca y metricas antes de escribir una semana. Tú propones: aprobar y publicar los hacen las personas en el panel.",
+          "BeFeed guarda la operación de Instagram orgánico de cada marca. Para una semana nueva usa generar_semana. Si la escribes tú, lee antes metodo, ultimo_cierre, marca y metricas. Tú propones: aprobar y publicar los hacen las personas, en el panel o en el tablero de MAAS2.",
       });
     case "ping":
       return reply({});

@@ -12,19 +12,23 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
-import { logEvent } from "@/lib/feed/service";
+import { syncBoards } from "@/lib/feed/board-sync";
+import { generateWeek } from "@/lib/feed/generate";
+import { logEvent, pushQuietly } from "@/lib/feed/service";
+import { reelScript, syncSkills } from "@/lib/feed/skills";
 import type { Actor } from "@/lib/feed/stages";
 
 const run = promisify(execFile);
 const DATA = process.env.REEL_DATA ?? "/data/reels";
 const POLL_MS = 5_000;
 const SISTEMA: Actor = { type: "agent", name: "Estudio" };
+const EVERY_5_MIN = 5 * 60_000;
 
 type Plan = { id: string; imagen?: string };
 type Ficha = { salida?: string; logo?: string; logo_url?: string; planos?: Plan[] } & Record<string, unknown>;
 
 async function reel(dir: string, steps: string[]) {
-  await run("python3", ["tools/reel.py", path.join(dir, "ficha.json"), ...steps], {
+  await run("python3", [reelScript(), path.join(dir, "ficha.json"), ...steps], {
     maxBuffer: 20 * 1024 * 1024,
     timeout: 40 * 60_000,
   });
@@ -126,6 +130,7 @@ async function work(job: { id: string; pieceId: string; step: string; ficha: Pri
   const audio = await publishVideo(job.pieceId, dir, ficha);
   await prisma.feedReelJob.update({ where: { id: job.id }, data: { step: "aprobacion", status: "LISTO", audio } });
   await logEvent(workspaceId, SISTEMA, "reel_listo", { pieceId: job.pieceId });
+  await pushQuietly(job.pieceId, workspaceId);
 }
 
 /** Devuelve true si hizo algo. El updateMany evita que dos procesos tomen el mismo trabajo. */
@@ -146,8 +151,40 @@ export async function tick(): Promise<boolean> {
   return true;
 }
 
+/** Genera una semana pedida. Va aparte de los Reels: uno de ellos puede tardar media hora. */
+export async function tickWeek(): Promise<boolean> {
+  const req = await prisma.feedWeekRequest.findFirst({ where: { status: "EN_COLA" }, orderBy: { createdAt: "asc" } });
+  if (!req) return false;
+  const { count } = await prisma.feedWeekRequest.updateMany({ where: { id: req.id, status: "EN_COLA" }, data: { status: "CORRIENDO" } });
+  if (count === 0) return true;
+  try {
+    const weekId = await generateWeek(req.id);
+    await prisma.feedWeekRequest.update({ where: { id: req.id }, data: { status: "LISTO", weekId, log: null } });
+  } catch (error) {
+    const raw = error as { stderr?: string; message?: string };
+    const log = (raw.stderr || raw.message || "Falló").trim().split("\n").slice(-3).join(" ").slice(-400);
+    console.error("[semana]", req.id, log);
+    await prisma.feedWeekRequest.update({ where: { id: req.id }, data: { status: "FALLO", log } });
+  }
+  return true;
+}
+
+async function loop(name: string, fn: () => Promise<unknown>, restMs: number) {
+  for (;;) {
+    await fn().catch((error) => console.error(`[${name}]`, error instanceof Error ? error.message : error));
+    await new Promise((resolve) => setTimeout(resolve, restMs));
+  }
+}
+
 async function main() {
   await mkdir(DATA, { recursive: true });
+  void loop("skills", async () => {
+    const hechos = await syncSkills();
+    if (hechos.length) console.log("[skills] al día:", hechos.join(", "));
+  }, EVERY_5_MIN);
+  void loop("tableros", syncBoards, EVERY_5_MIN);
+  await prisma.feedWeekRequest.updateMany({ where: { status: "CORRIENDO" }, data: { status: "FALLO", log: "Se interrumpió por un reinicio." } });
+  void loop("semana", tickWeek, POLL_MS);
   // Un trabajo que quedó corriendo cuando se reinició el proceso no va a terminar solo.
   await prisma.feedReelJob.updateMany({ where: { status: "CORRIENDO" }, data: { status: "FALLO", log: "Se interrumpió por un reinicio." } });
   console.log("[reels] listo, carpeta", DATA);
