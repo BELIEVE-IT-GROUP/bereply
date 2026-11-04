@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { assertCanProduce } from "@/lib/feed/stages";
-import { continueJobAction, rebuildJobAction, redoPlanAction } from "../../studio-actions";
+import { continueJobAction, rebuildJobAction, retryJobAction, redoPlanAction } from "../../studio-actions";
 import { ErrorNote, Head } from "../../ui";
 import { PieceMedia } from "../../media";
 import { JOB_LABEL, JOB_STEPS } from "../job";
@@ -51,7 +51,10 @@ export default async function EstudioPiezaPage({
             {job?.status === "ESPERA_REVISION" ? (
               <form action={continueJobAction}><input type="hidden" name="pieceId" value={piece.id} /><button className="btn pri" type="submit">Cuadros bien: producir clips</button></form>
             ) : null}
-            {job?.status === "LISTO" || job?.status === "FALLO" ? (
+            {job?.status === "FALLO" ? (
+              <form action={retryJobAction}><input type="hidden" name="pieceId" value={piece.id} /><button className="btn pri" type="submit">Reintentar</button></form>
+            ) : null}
+            {job?.status === "LISTO" ? (
               <form action={rebuildJobAction}><input type="hidden" name="pieceId" value={piece.id} /><button className="btn" type="submit">Volver a armar, gratis</button></form>
             ) : null}
             {piece.videoUrl && !piece.gatesPassed.includes("MP4") ? <Link className="btn pri" href={`/feed/pieza/${piece.id}`}>Ir a aprobar</Link> : null}

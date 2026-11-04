@@ -39,6 +39,18 @@ export async function rebuildJobAction(form: FormData) {
   await requeue(form, "armar", "volver_a_armar");
 }
 
+/** Repite la etapa que falló. Lo que ya se pagó sigue en la carpeta del trabajo y no se vuelve a pagar. */
+export async function retryJobAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  const pieceId = String(form.get("pieceId") ?? "");
+  const { count } = await prisma.feedReelJob.updateMany({
+    where: { pieceId, status: "FALLO", piece: { week: { workspaceId } } },
+    data: { status: "EN_COLA", log: null },
+  });
+  if (count > 0) await logEvent(workspaceId, actor, "reintentar_reel", { pieceId });
+  revalidatePath(`/feed/estudio/${pieceId}`);
+}
+
 export async function redoPlanAction(form: FormData) {
   const plan = String(form.get("plan") ?? "");
   await requeue(form, `rehacer:${plan}`, "rehacer_plano", plan);
