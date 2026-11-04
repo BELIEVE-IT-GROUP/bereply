@@ -1,0 +1,19 @@
+lib/feed/generate.ts
+  s_3b98e1c0506fdd::t_0d5f8506abc19e 186-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6721056e902e5c395d85d55c0080afd8dc306aa2",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
