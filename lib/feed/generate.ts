@@ -183,7 +183,8 @@ export async function generateWeek(requestId: string) {
     for (const p of [...plan.piezas].sort((a, b) => a.dia.localeCompare(b.dia))) {
       posicion += 1;
       const pendiente = /\{\{/.test(JSON.stringify([p.guion, p.caption]));
-      const dicho = [p.titulo, p.primeros_3s, p.caption, p.historias, ...p.ganchos.map((g) => g.text), ...p.guion.map((g) => g.voice)].join(" ");
+      // primeros_3s queda por fuera: son tiempos de dirección, no datos que vea la gente.
+      const dicho = [p.titulo, p.caption, p.historias, ...p.ganchos.map((g) => g.text), ...p.guion.map((g) => g.voice)].join(" ");
       const sinFuente = unsourcedFigures(dicho, user);
       await savePiece(
         week.workspaceId,
