@@ -1,0 +1,29 @@
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_2e30ee5acef8c0 3,343-361
+app/feed/estudio/[id]/page.tsx
+  s_3b98e1c0506fdd::t_0910c46e338be9 67,123
+app/feed/studio-actions.ts
+  s_3b98e1c0506fdd::t_a9a2af3f7c7eb0 8,127
+lib/feed/draft-ficha.ts
+  s_3b98e1c0506fdd::t_47be9aea9cb65f 46-48,60-61,114-126
+lib/feed/generate.ts
+  s_3b98e1c0506fdd::t_152ec07783507f 117
+app/feed/estudio/[id]/ficha-form.tsx
+  s_3b98e1c0506fdd::t_bda80fa60d2514 3,33-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af65598bca0bf4b17c908fe707a82cceee5f8ed5",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
