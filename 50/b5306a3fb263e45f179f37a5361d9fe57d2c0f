@@ -1,0 +1,21 @@
+lib/feed/generate.ts
+  s_3b98e1c0506fdd::t_9d5f9addce400b 117-120
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_bab8d35de89a16 73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50b5306a3fb263e45f179f37a5361d9fe57d2c0f",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
