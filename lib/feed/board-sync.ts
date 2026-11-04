@@ -41,6 +41,7 @@ export async function syncBoards() {
     where: {
       maasAssetId: null,
       instagramMediaId: null,
+      NOT: { maasStage: "quitada" },
       gatesPassed: { hasEvery: ["DANIELA", "JORGE"] },
       week: { endsOn: { gte: since }, instagramAccount: { maas2ProjectId: { not: null } } },
     },
@@ -60,7 +61,13 @@ export async function syncBoards() {
   for (const piece of pieces) {
     const workspaceId = piece.week.workspaceId;
     const asset = byAsset.get(piece.maasAssetId as string);
-    if (!asset) continue;
+    if (!asset) {
+      // La quitaron del tablero a mano. No se vuelve a copiar hasta que pase otra vez los filtros.
+      await prisma.feedPiece.update({ where: { id: piece.id }, data: { maasAssetId: null, maasStage: "quitada", maasSyncedAt: new Date() } });
+      await logEvent(workspaceId, TABLERO, "quitada_del_tablero", { pieceId: piece.id });
+      changes += 1;
+      continue;
+    }
 
     const nuevos = comments.filter((c) => c.media_asset_id === asset.id && !piece.comments.some((k) => k.externalId === c.id));
     for (const c of nuevos) {

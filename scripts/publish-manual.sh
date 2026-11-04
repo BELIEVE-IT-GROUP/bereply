@@ -15,7 +15,7 @@
 #
 # Ningún secreto pasa por este script: `publish-r2` y `infra` los leen de Infisical.
 #
-# Uso:  scripts/publish-manual.sh [--publish] [--only r2|benotes] [--force] [usuario|operacion|arquitectura ...]
+# Uso:  scripts/publish-manual.sh [--publish] [--only r2|benotes] [--force] [usuario|operacion|arquitectura|befeed ...]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,13 +26,13 @@ while [[ $# -gt 0 ]]; do
     --publish) PUBLISH=1 ;;
     --force) FORCE=1 ;;
     --only) ONLY="${2:-}"; shift ;;
-    usuario|operacion|arquitectura) MANUALS+=("$1") ;;
-    *) echo "Uso: scripts/publish-manual.sh [--publish] [--only r2|benotes] [--force] [usuario|operacion|arquitectura ...]" >&2; exit 2 ;;
+    usuario|operacion|arquitectura|befeed) MANUALS+=("$1") ;;
+    *) echo "Uso: scripts/publish-manual.sh [--publish] [--only r2|benotes] [--force] [usuario|operacion|arquitectura|befeed ...]" >&2; exit 2 ;;
   esac
   shift
 done
 [[ -z "$ONLY" || "$ONLY" == "r2" || "$ONLY" == "benotes" ]] || { echo "--only acepta r2 o benotes" >&2; exit 2; }
-[[ ${#MANUALS[@]} -gt 0 ]] || MANUALS=(usuario operacion)
+[[ ${#MANUALS[@]} -gt 0 ]] || MANUALS=(usuario operacion befeed)
 
 # launchd y algunos shells no traen node 24 en el PATH.
 NODE=""

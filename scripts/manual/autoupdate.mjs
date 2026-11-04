@@ -42,7 +42,7 @@ const DIFF_BUDGET = 60_000;
 // Formas rioplatenses que el manual no usa (escritas con escapes para que el propio detector no las contenga).
 const VOSEO = new RegExp("\\b(v\\u006fs|ten\\u00e9s|pod\\u00e9s|quer\\u00e9s|sab\\u00e9s)\\b", "i");
 
-const SYSTEM = `Mantienes los manuales de BeReply, la herramienta de Believe que responde comentarios y mensajes de Instagram con DMs automáticos. Recibes una sección de un manual en Markdown, a qué manuales pertenece (usuario: quien opera las cuentas de Instagram de una marca; operacion: Believe, que administra BeReply) y el diff del código y los documentos que la alimentan. Decide si el diff cambia algo de lo que la sección dice, o debería decir. Si es así, reescríbela.
+const SYSTEM = `Mantienes los manuales de BeReply, la herramienta de Believe que responde comentarios y mensajes de Instagram con DMs automáticos. Recibes una sección de un manual en Markdown, a qué manuales pertenece (usuario: quien opera las cuentas de Instagram de una marca; operacion: Believe, que administra BeReply; befeed: quien controla la semana orgánica de una marca en BeFeed, el módulo de BeReply que genera semanas, produce Reels y se conecta con los tableros de MAAS2) y el diff del código y los documentos que la alimentan. Decide si el diff cambia algo de lo que la sección dice, o debería decir. Si es así, reescríbela.
 
 Reglas:
 - Cambia solo lo que el diff obliga a cambiar. No reescribas por estilo ni reordenes lo que sigue siendo cierto.

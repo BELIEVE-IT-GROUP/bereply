@@ -577,13 +577,15 @@ function page({ config, name, manual, meta, sections, hero }) {
         `<section class="part" id="${section.id}"><div class="part-head"><span class="num">${section.num}</span><h1>${esc(section.title)}</h1></div>\n${section.html}\n</section>`,
     )
     .join("\n");
+  const producto = manual.producto ?? config.producto;
   const family = Object.entries(config.manuales)
+    .filter(([, m]) => (m.producto ?? config.producto) === producto)
     .map(
       ([other, m]) =>
         `<a href="../${other}/index.html"${other === name ? ' class="on" aria-current="page"' : ""}><small>${esc(m.eyebrow)}</small><b>${esc(plain(m.title))}</b></a>`,
     )
     .join("");
-  const plainTitle = `${plain(manual.title)} · ${config.producto}`;
+  const plainTitle = `${plain(manual.title)} · ${producto}`;
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -605,11 +607,11 @@ function page({ config, name, manual, meta, sections, hero }) {
 <body>
 <header class="top">
   <div class="wrap">
-    <a class="lockup" href="#top" id="top" aria-label="${esc(config.producto)}">
-      <img class="sym logo-light" src="assets/bereply.svg" alt="" width="30" height="30">
+    <a class="lockup" href="#top" id="top" aria-label="${esc(producto)}">
+      ${manual.producto ? `<b style="font:500 24px/1 Fraunces,serif;letter-spacing:-.025em"><span style="color:#00aaff">Be</span>${esc(manual.producto.slice(2))}</b>` : `<img class="sym logo-light" src="assets/bereply.svg" alt="" width="30" height="30">
       <img class="sym logo-dark" src="assets/bereply-inverse.svg" alt="" width="30" height="30">
       <img class="logo-light" src="assets/bereply-positive.svg" alt="BeReply" height="26">
-      <img class="logo-dark" src="assets/bereply-negative.svg" alt="BeReply" height="26">
+      <img class="logo-dark" src="assets/bereply-negative.svg" alt="BeReply" height="26">`}
       <span>Manuales</span>
     </a>
     <div class="tools"><button class="theme" type="button" aria-label="Cambiar tema">Tema</button></div>
@@ -618,7 +620,7 @@ function page({ config, name, manual, meta, sections, hero }) {
 <div class="hero">
   <div class="wrap">
     <div>
-      <span class="eyebrow">${esc(manual.eyebrow)} · ${esc(config.producto)}</span>
+      <span class="eyebrow">${esc(manual.eyebrow)} · ${esc(producto)}</span>
       <h1 class="title">${titleHtml(manual.title)}</h1>
       <p class="sub">${esc(manual.subtitle)}</p>
       <div class="meta">
@@ -648,7 +650,7 @@ ${body}
   <div class="wrap">
     <div>
       <p>${esc(plain(manual.title))} v${esc(meta.manual_version)}. Revisado contra el commit <code>${esc(meta.revisado.slice(0, 7))}</code> de bereply. Fuente única: <code>docs/manual/</code>; esta página, BeNotes y el Markdown se generan desde ahí y se actualizan solos cuando cambia el código.</p>
-      <small>BeReply · Powered by LION · Sistema sobre proyecto. Dato sobre opinión.</small>
+      <small>${esc(producto)} · Powered by LION · Sistema sobre proyecto. Dato sobre opinión.</small>
     </div>
     <div class="sign"><img src="assets/believe-negative.svg" alt="Believe" height="44"></div>
   </div>

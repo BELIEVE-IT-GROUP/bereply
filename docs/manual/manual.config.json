@@ -57,6 +57,26 @@
         "22-integraciones.md",
         "23-este-manual.md"
       ]
+    },
+    "befeed": {
+      "title": "Manual de *BeFeed*",
+      "eyebrow": "Para quien opera el Instagram de las marcas",
+      "producto": "BeFeed",
+      "subtitle": "Cómo se controla el Instagram orgánico de cada marca: generar la semana, repartirla, producir Reels, aprobar con el cliente en el tablero de MAAS2 y medir.",
+      "benotes_title": "BeFeed · Manual de uso",
+      "revisado": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "secciones": [
+        "30-que-es-befeed.md",
+        "31-primeros-pasos-befeed.md",
+        "32-generar-la-semana.md",
+        "33-piezas-y-puertas.md",
+        "34-el-estudio.md",
+        "35-el-tablero.md",
+        "36-el-agente.md",
+        "37-metricas-y-cierre.md",
+        "38-problemas-befeed.md",
+        "39-operacion-befeed.md"
+      ]
     }
   },
   "sources": {
@@ -178,6 +198,88 @@
         "scripts/manual",
         "scripts/publish-manual.sh",
         "docs/manual/README.md"
+      ]
+    },
+    "30-que-es-befeed.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/nav.tsx",
+        "app/feed/page.tsx",
+        "lib/feed/stages.ts"
+      ]
+    },
+    "31-primeros-pasos-befeed.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/cuentas",
+        "lib/auth.ts"
+      ]
+    },
+    "32-generar-la-semana.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/semana/generar",
+        "lib/feed/generate.ts",
+        "lib/feed/service.ts"
+      ]
+    },
+    "33-piezas-y-puertas.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/pieza",
+        "lib/feed/stages.ts",
+        "app/feed/media.tsx"
+      ]
+    },
+    "34-el-estudio.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/estudio",
+        "app/feed/studio-actions.ts",
+        "worker/reel-runner.ts",
+        "lib/feed/ficha.ts"
+      ]
+    },
+    "35-el-tablero.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "lib/feed/maas2.ts",
+        "lib/feed/board-sync.ts"
+      ]
+    },
+    "36-el-agente.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "lib/feed/mcp.ts",
+        "app/feed/agente",
+        "lib/feed/skills.ts"
+      ]
+    },
+    "37-metricas-y-cierre.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/metricas",
+        "app/feed/ideas",
+        "app/feed/cierre",
+        "lib/feed/insights.ts"
+      ]
+    },
+    "38-problemas-befeed.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "app/feed/estudio",
+        "app/feed/semana",
+        "lib/feed/service.ts"
+      ]
+    },
+    "39-operacion-befeed.md": {
+      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "paths": [
+        "docker-compose.prod.yml",
+        "Dockerfile",
+        "worker/reel-runner.ts",
+        "lib/feed/skills.ts",
+        "scripts/cron.sh"
       ]
     }
   }
