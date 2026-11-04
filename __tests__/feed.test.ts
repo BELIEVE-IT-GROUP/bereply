@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
 import { planFromScript } from "@/lib/feed/draft-ficha";
-import { textsToLint } from "@/lib/feed/generate";
+import { textsToLint, unsourcedFigures } from "@/lib/feed/generate";
 import { boardName, boardStage, readyForBoard } from "@/lib/feed/maas2";
 import { fichaSchema, videoUrlSchema } from "@/lib/feed/ficha";
 import { median, skipSeparation, summarize, winners, worstHook, type ReelStats } from "@/lib/feed/insights";
@@ -319,5 +319,24 @@ describe("linter de la semana generada", () => {
   });
   it("un carrusel solo revisa el caption", () => {
     expect(textsToLint({ formato: "CARRUSEL", caption: "Texto", guion: [] })).toEqual([{ texto: "Texto", modo: "caption" }]);
+  });
+});
+
+describe("cifras sin fuente", () => {
+  const fuente = "Aumento de 35% en conversión, 20 % en ventas, 25.000 tokens y 180 días. Parqueo: $12.000.";
+  it("deja pasar lo que está en las fuentes, con otro formato", () => {
+    expect(unsourcedFigures("35 % más conversión, 20% más ventas, 25,000 tokens y $12.000 en 180 días.", fuente)).toEqual([]);
+  });
+  it("atrapa lo que no está", () => {
+    expect(unsourcedFigures("Crecimos 47% y 300 clientes.", fuente)).toEqual(["47%", "300"]);
+    expect(unsourcedFigures("Son 5% más.", fuente)).toEqual(["5%"]);
+    expect(unsourcedFigures("Solo $9.900.", fuente)).toEqual(["9900"]);
+  });
+  it("no confunde un número con parte de otro", () => {
+    expect(unsourcedFigures("Vale 80 días.", fuente)).toEqual(["80"]);
+    expect(unsourcedFigures("Son 35 personas.", fuente)).toEqual([]);
+  });
+  it("ignora horas y números de un dígito", () => {
+    expect(unsourcedFigures("A las 11:00 p. m., en 3 pasos, sábado 8 p. m.", fuente)).toEqual([]);
   });
 });

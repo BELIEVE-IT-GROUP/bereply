@@ -64,6 +64,20 @@ export function textsToLint(p: { formato: string; caption?: string; guion?: Arra
   ];
 }
 
+const norm = (t: string) => t.toLowerCase().replace(/(\d)[.,](?=\d{3}\b)/g, "$1").replace(/\s+(?=%)/g, "");
+
+/**
+ * Las cifras de un texto que no aparecen en ninguna fuente. El modelo puede inventar un
+ * dato con mucha seguridad, y aquí nadie está mirando: una falsa alarma solo le cuesta a
+ * alguien revisar una pieza. Quedan por fuera las horas y los números de un dígito.
+ */
+export function unsourcedFigures(text: string, sources: string) {
+  const known = norm(sources);
+  const figures = norm(text).replace(/\d{1,2}:\d{2}/g, " ").match(/\$?\s?\d[\d.,]*\d\s?%?|\d\s?%|\$\s?\d/g) ?? [];
+  const clean = figures.map((f) => f.replace(/^\$?\s*/, "").replace(/\s/g, ""));
+  return [...new Set(clean)].filter((f) => !new RegExp(`(^|[^\\d])${f.replace(/[.%]/g, "\\$&")}(?![\\d])`).test(known));
+}
+
 async function lint(text: string, brandFile: string, modo: "caption" | "reel") {
   const dir = await mkdtemp(path.join(tmpdir(), "lint-"));
   try {
@@ -100,7 +114,7 @@ async function askModel(system: string, user: string) {
 }
 
 const FORMATO_JSON = `Responde SOLO con JSON: {"tema":"","resumen_loop":"","piezas":[{"dia":"AAAA-MM-DD","formato":"REEL|CARRUSEL|HISTORIAS|POST","gota":"Semilla|Eco|Profundidad|Puente","titulo":"","primeros_3s":"","ganchos":[{"text":"","score":0,"chosen":true}],"guion":[{"time":"0 a 2 s","voice":"","screen":""}],"caption":"","historias":"","mide":"","falta_dato":null,"quien_lo_tiene":null}]}.
-Reglas: resumen_loop en máximo tres frases, sin contar cómo lo corregiste. En HISTORIAS el caption va vacío y cada cuadro va en historias. Español de la marca, nunca voseo. Nada inventado: si falta una cifra, película, precio o condición escribe {{dato}} y explica en falta_dato qué falta y en quien_lo_tiene quién lo tiene. Tres ganchos con fórmulas distintas y uno elegido. En guion, voice es solo lo que se dice; las acotaciones van entre paréntesis. Sin rayas largas. Respeta palabras prohibidas, CTAs aprobados y topes de hashtags.`;
+Reglas: resumen_loop en máximo tres frases, sin contar cómo lo corregiste. Si la estrategia no trae pilares o ritmo, dilo ahí: lo que propongas es deducido. En HISTORIAS el caption va vacío y cada cuadro va en historias. Español de la marca, nunca voseo. Nada inventado: si falta una cifra, película, precio o condición escribe {{dato}} y explica en falta_dato qué falta y en quien_lo_tiene quién lo tiene. Tres ganchos con fórmulas distintas y uno elegido. En guion, voice es solo lo que se dice; las acotaciones van entre paréntesis. Sin rayas largas. Respeta palabras prohibidas, CTAs aprobados y topes de hashtags.`;
 
 export async function generateWeek(requestId: string) {
   const req = await prisma.feedWeekRequest.findUniqueOrThrow({
@@ -132,11 +146,12 @@ export async function generateWeek(requestId: string) {
     const desde = req.startsOn.toISOString().slice(0, 10);
     const hasta = req.endsOn.toISOString().slice(0, 10);
     const system = `Eres el estratega de Instagram orgánico de Believe. Sigue este método.\n\n${metodo}\n\n${oficio}\n\n${piezas}\n\n${FORMATO_JSON}`;
+    const voz = await readFile(brandFile, "utf8");
     const user = [
       `Marca: ${marca}. Semana: ${desde} a ${hasta}.`,
       `Acción medible de la semana: ${req.measurableAction}.`,
       req.rawMaterial ? `Materia prima real (cartelera, promos, datos): ${req.rawMaterial}` : "No hay materia prima: lo que falte va como {{dato}}.",
-      `Voz de la marca:\n${await readFile(brandFile, "utf8")}`,
+      `Voz de la marca:\n${voz}`,
       `Estrategia:\n${estrategia}`,
       cierre ? `Cierre anterior. Se repite: ${cierre.repeat ?? "-"}. Se suelta: ${cierre.drop ?? "-"}. Pendiente: ${cierre.pending ?? "-"}.` : "No hay cierre anterior.",
       ganadores.length ? `Ganadores recientes de la cuenta:\n${ganadores.join("\n")}` : "",
@@ -168,6 +183,8 @@ export async function generateWeek(requestId: string) {
     for (const p of [...plan.piezas].sort((a, b) => a.dia.localeCompare(b.dia))) {
       posicion += 1;
       const pendiente = /\{\{/.test(JSON.stringify([p.guion, p.caption]));
+      const dicho = [p.titulo, p.primeros_3s, p.caption, p.historias, ...p.ganchos.map((g) => g.text), ...p.guion.map((g) => g.voice)].join(" ");
+      const sinFuente = unsourcedFigures(dicho, user);
       await savePiece(
         week.workspaceId,
         {
@@ -185,8 +202,12 @@ export async function generateWeek(requestId: string) {
           measures: p.mide,
           needsVideo: p.formato === "REEL",
           linterClean: !(await fallas(p)),
-          blockedBy: pendiente ? (p.quien_lo_tiene ?? "Daniela") : null,
-          blockedReason: pendiente ? (p.falta_dato ?? "Hay datos sin resolver en el texto") : null,
+          blockedBy: pendiente ? (p.quien_lo_tiene ?? "Daniela") : sinFuente.length ? "Daniela" : null,
+          blockedReason: pendiente
+            ? (p.falta_dato ?? "Hay datos sin resolver en el texto")
+            : sinFuente.length
+              ? `Estas cifras no salen de ninguna fuente: ${sinFuente.join(", ")}. Confírmalas o quítalas.`
+              : null,
         },
         AGENTE
       );

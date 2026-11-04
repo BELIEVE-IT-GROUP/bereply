@@ -124,7 +124,8 @@ export async function saveFichaAction(form: FormData) {
   const parsed = fichaSchema.safeParse(ficha);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    back(pieceId, `Falta revisar ${issue.path.join(" ") || "la ficha"}: ${issue.message}`);
+    const nombre = issue.path[0] === "logo_url" ? "el logo" : issue.path.join(" ") || "la ficha";
+    back(pieceId, `Falta revisar ${nombre}: ${issue.message}`);
     return;
   }
   try {
