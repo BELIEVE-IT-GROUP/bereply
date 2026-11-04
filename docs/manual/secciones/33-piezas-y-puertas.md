@@ -6,8 +6,8 @@ Cada pieza avanza por columnas: **Guion, Filtros, Cliente, Video, Lista, Publica
 |---|---|---|
 | Filtro de Daniela | Daniela | Sigue el de Jorge |
 | Filtro de Jorge | Jorge | La pieza se copia al tablero del cliente |
-| Cliente | El cliente, en el tablero | Se puede producir el video |
-| MP4 | El cliente, en el tablero | Queda lista para publicar |
+| OK del cliente | El cliente, en el tablero | Se puede producir el video |
+| Aprobar el MP4 | El cliente, en el tablero | Queda lista para publicar |
 
 También se pueden abrir desde la pieza, en BeFeed, cuando el cliente aprueba por otro medio.
 

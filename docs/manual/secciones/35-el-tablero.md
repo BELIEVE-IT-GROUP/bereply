@@ -19,7 +19,7 @@ Cada 5 minutos, BeFeed revisa los tableros:
 
 | En el tablero | En BeFeed |
 |---|---|
-| El cliente aprueba | Se abre la puerta que sigue: primero **Cliente** y, si ya hay video, **MP4** |
+| El cliente aprueba | Se abre la puerta que sigue: primero **OK del cliente** y, si ya hay video, **Aprobar el MP4** |
 | El cliente rechaza | La pieza vuelve a guion con las puertas cerradas y su comentario queda como motivo |
 | Alguien comenta | El comentario aparece en la pieza, en **Comentarios del tablero**, y en la tarjeta de la semana |
 | Alguien sube un archivo | Entra a la pieza. Un video nuevo vuelve a pedir aprobación |
