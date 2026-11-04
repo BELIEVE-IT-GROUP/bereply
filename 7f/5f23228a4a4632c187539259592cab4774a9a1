@@ -1,0 +1,19 @@
+docs/manual/manual.config.json
+  s_1d3e5cad123128::t_73d10b8cf2a40f 67,79-80,205,213,220,228,236,245,252,260,269,277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7f5f23228a4a4632c187539259592cab4774a9a1",
+  "prompts": {},
+  "sessions": {
+    "s_1d3e5cad123128": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab64b5e2-efb2-41a3-8bb5-4ab9f35108b1",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
