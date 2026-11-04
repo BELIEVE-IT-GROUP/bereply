@@ -114,7 +114,10 @@ export async function generateWeek(requestId: string) {
     const brandFile = path.join(dir, "brand.json");
     const brandName = (account.maas2ProjectId && (await projectName(account.maas2ProjectId))) || marca;
 
-    await tool(["maasy.py", "brand", brandName, "--out", brandFile]);
+    // En Maasy la marca puede llamarse distinto que en MAAS2: manda el vínculo de la cuenta, y el nombre es el respaldo.
+    await tool(["maasy.py", "brand", account.maasyProjectId ?? brandName, "--out", brandFile]).catch(() => {
+      throw new Error(`No encontré la voz de ${marca} en Maasy. Vincula la cuenta con su marca en BeReply → Settings.`);
+    });
     const estrategia = await tool(["maas2.py", "estrategia", brandName, "--seccion", "organic_content", "strategic_objective", "factor_be"]).catch(
       (e: Error) => `Sin estrategia en MAAS2: ${e.message.slice(0, 200)}`
     );

@@ -70,7 +70,7 @@ export const TOOLS = {
     run: async (_: object, { workspaceId }: Ctx) =>
       prisma.instagramAccount.findMany({
         where: { workspaceId },
-        select: { username: true, name: true, maasyProjectId: true },
+        select: { username: true, name: true, maasyProjectId: true, maas2ProjectId: true },
       }),
   },
   metricas: {
