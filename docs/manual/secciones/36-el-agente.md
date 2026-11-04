@@ -33,4 +33,4 @@ Aprobar, publicar, comentar ni mandar mensajes. No es una regla que se le pide r
 
 ## El método siempre al día
 
-El agente lee el método con la herramienta `metodo`. Cuando se mejora el skill, BeFeed lo baja solo, y la versión en uso se ve en **Agente**.
+El agente lee el método con la herramienta `metodo`. Cuando se mejora el skill, llega solo a BeFeed, y la versión en uso se ve en **Agente**.

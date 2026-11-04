@@ -60,7 +60,7 @@ export default async function AgentePage() {
 
       <section className="plano">
         <h2 className="s">Con qué método trabaja</h2>
-        {skills.length === 0 ? <p className="sub">Todavía no se han bajado los skills.</p> : null}
+        {skills.length === 0 ? <p className="sub">Todavía no ha llegado ningún skill.</p> : null}
         <div className="lista">
           {skills.map((s) => (
             <div key={s.name}>
@@ -70,7 +70,7 @@ export default async function AgentePage() {
             </div>
           ))}
         </div>
-        <p className="sub" style={{ fontSize: 13 }}>Cada mejora que llega a GitHub entra aquí sola en menos de 5 minutos.</p>
+        <p className="sub" style={{ fontSize: 13 }}>Cada mejora que llega a GitHub entra aquí sola en cerca de un minuto.</p>
       </section>
 
       <section className="plano">

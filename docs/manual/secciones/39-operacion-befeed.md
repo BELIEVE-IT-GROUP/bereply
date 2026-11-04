@@ -9,20 +9,20 @@ BeFeed es un módulo del repo `BELIEVE-IT-GROUP/bereply`, en `/root/openreply` d
 | Servicio | Qué hace |
 |---|---|
 | `openreply-web` | El panel y el MCP en `/api/mcp` |
-| `openreply-reels` | Produce Reels, genera semanas, sincroniza tableros y baja los skills |
+| `openreply-reels` | Produce Reels, genera semanas y sincroniza tableros |
 | `openreply-cron` | Llama `feed-metrics` cada hora |
 
-El volumen `openreply-reels` guarda el trabajo de cada Reel y los skills. La web lo monta en solo lectura.
+El volumen `openreply-reels` guarda el trabajo de cada Reel y los skills. La web también lo monta: ahí recibe los skills.
 
 ## Los skills
 
-`believe-instagram` y `motion-video-believe` viven en sus propios repos privados de `BELIEVE-IT-GROUP`. **Una mejora se commitea y se pushea a `main`.** El worker revisa cada 5 minutos y baja lo nuevo al volumen, sin construir imagen: `tools/reel.py`, `tools/lint_es.py`, `references/` y `SKILL.md` se leen de ahí. La imagen trae una copia de `reel.py` por si el skill todavía no se ha bajado.
+`believe-instagram` y `motion-video-believe` viven en sus propios repos privados de `BELIEVE-IT-GROUP`. **Una mejora se commitea y se pushea a `main`.** La GitHub Action `.github/workflows/befeed.yml` de cada repo empaqueta el repo y lo manda a `POST /api/feed/skills/<nombre>`. BeFeed lo instala en el volumen, sin construir imagen: `tools/reel.py`, `tools/lint_es.py`, `references/` y `SKILL.md` se leen de ahí. La imagen trae una copia de `reel.py` por si el skill todavía no ha llegado.
 
-El acceso es una llave de solo lectura por repo, en base64: `BEFEED_DEPLOY_KEY_BELIEVE_INSTAGRAM` y `BEFEED_DEPLOY_KEY_MOTION_VIDEO_BELIEVE`.
+La Action usa el secreto `BEFEED_SKILLS_TOKEN` del repo, igual al del `.env` del servidor y al de Infisical. Se usa este camino porque la organización tiene deshabilitadas las llaves de despliegue.
 
 ## Variables
 
-Además de las de BeReply: `FAL_API_KEY`, `elevenlabs_api_key`, `R2_*`, `MAAS2_SUPABASE_SELFHOST_URL`, `MAAS2_SUPABASE_SERVICE_ROLE_KEY`, `MAASY_MCP_API_TOKEN` y `FEED_MAX_REELS_DAY`. Las copias a MAAS2 las firma el perfil de `MAAS2_FEED_USER_EMAIL`, por defecto `jorge@believe-global.com`.
+Además de las de BeReply: `FAL_API_KEY`, `elevenlabs_api_key`, `R2_*`, `MAAS2_SUPABASE_SELFHOST_URL`, `MAAS2_SUPABASE_SERVICE_ROLE_KEY`, `MAASY_MCP_API_TOKEN`, `BEFEED_SKILLS_TOKEN` y `FEED_MAX_REELS_DAY`. Las copias a MAAS2 las firma el perfil de `MAAS2_FEED_USER_EMAIL`, por defecto `jorge@believe-global.com`.
 
 ## Desplegar
 

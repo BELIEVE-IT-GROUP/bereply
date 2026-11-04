@@ -147,7 +147,7 @@ export const TOOLS = {
   metodo: {
     description: "El método de Instagram de Believe, siempre en su última versión. Sin sección da la guía y la lista de secciones.",
     input: z.object({ seccion: z.string().nullish().describe("Por ejemplo oficio, piezas, video o metodo-maas") }),
-    run: async ({ seccion }: { seccion?: string | null }) => (await instagramMethod(seccion ?? undefined)) ?? "El método todavía no se ha bajado.",
+    run: async ({ seccion }: { seccion?: string | null }) => (await instagramMethod(seccion ?? undefined)) ?? "El método todavía no ha llegado a BeFeed.",
   },
   generar_semana: {
     description:
