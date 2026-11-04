@@ -16,6 +16,7 @@ const PERMISO: Record<string, { label: string; className: string }> = {
   guardar_pieza: { label: "Escribe borrador", className: "tag ok" },
   pasar_a_filtros: { label: "Pide revisión", className: "tag ok" },
   frenar_pieza: { label: "Escribe borrador", className: "tag ok" },
+  adjuntar_video: { label: "Escribe borrador", className: "tag ok" },
   pedir_reel: { label: "Gasta dinero", className: "tag azul" },
 };
 

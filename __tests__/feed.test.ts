@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fichaSchema } from "@/lib/feed/ficha";
+import { fichaSchema, videoUrlSchema } from "@/lib/feed/ficha";
 import { median, skipSeparation, summarize, winners, worstHook, type ReelStats } from "@/lib/feed/insights";
 import {
   approve,
@@ -170,5 +170,21 @@ describe("ficha de un Reel", () => {
   it("rechaza planos repetidos, porque se pisarían los archivos", () => {
     const planos = [fichaBase.planos[0], fichaBase.planos[0]];
     expect(fichaSchema.safeParse({ ...fichaBase, planos }).success).toBe(false);
+  });
+});
+
+describe("video adjunto", () => {
+  it("acepta un MP4 del R2 de Believe", () => {
+    expect(videoUrlSchema.safeParse("https://files.believe-global.com/clientes/uniplaza/a.mp4").success).toBe(true);
+  });
+
+  it.each([
+    "http://files.believe-global.com/a.mp4",
+    "https://files.believe-global.com/a.exe",
+    "https://files.believe-global.com.evil.com/a.mp4",
+    "https://otro.com/a.mp4",
+    "no es una url",
+  ])("rechaza %s", (url) => {
+    expect(videoUrlSchema.safeParse(url).success).toBe(false);
   });
 });

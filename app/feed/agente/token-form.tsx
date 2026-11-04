@@ -16,7 +16,7 @@ export function TokenForm({ url }: { url: string }) {
       {state.token ? (
         <div className="aviso" role="status">
           <p style={{ margin: "0 0 8px" }}>Cópialo ahora: no se vuelve a mostrar.</p>
-          <code className="c">{`claude mcp add --transport http befeed \\\n  ${url} \\\n  --header "Authorization: Bearer ${state.token}"`}</code>
+          <code className="c">{`claude mcp add --scope user --transport http befeed \\\n  ${url} \\\n  --header "Authorization: Bearer ${state.token}"`}</code>
         </div>
       ) : null}
     </>

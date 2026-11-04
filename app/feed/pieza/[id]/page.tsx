@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { gateState, stageFor } from "@/lib/feed/service";
 import { GATES, nextGate, type Gate } from "@/lib/feed/stages";
-import { approveAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
+import { approveAction, attachVideoAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
 import { FORMAT_LABEL, GATE_HINT, GATE_LABEL, STAGE_LABEL } from "../../gates";
 import { day, ErrorNote, firstLine, Head, moment } from "../../ui";
 
@@ -156,6 +156,16 @@ export default async function PiezaPage({
               <textarea className="input" id="note" name="note" rows={3} placeholder="Qué hay que cambiar" />
               <p className="sub" style={{ fontSize: 13 }}>Vuelve a guion y se cierran las puertas.</p>
               <button className="btn" type="submit">Pedir cambios</button>
+            </form>
+          ) : null}
+
+          {stage !== "PUBLICADA" ? (
+            <form action={attachVideoAction} className="card">
+              {hidden}
+              <label className="s" htmlFor="url">{piece.videoUrl ? "Cambiar el MP4" : "Adjuntar un MP4"}</label>
+              <input className="input" id="url" name="url" type="url" required placeholder="https://files.believe-global.com/….mp4" />
+              <p className="sub" style={{ fontSize: 13 }}>Para lo que edita Carol. Un video nuevo se vuelve a aprobar.</p>
+              <button className="btn" type="submit">Adjuntar</button>
             </form>
           ) : null}
 

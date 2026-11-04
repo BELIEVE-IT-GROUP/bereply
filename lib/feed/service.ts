@@ -6,6 +6,7 @@ import type { FeedFormat, FeedPiece, Prisma } from "@/app/generated/prisma/clien
 import { prisma } from "@/lib/db/client";
 import { getMediaInsights, getUserMedia, PermissionError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/oauth";
+import { videoUrlSchema } from "./ficha";
 import {
   approve,
   GateError,
@@ -111,6 +112,23 @@ export async function setBlocker(
     pieceId,
     detail: blockedBy ? `${blockedBy}: ${blockedReason ?? ""}` : undefined,
   });
+  return updated;
+}
+
+/**
+ * Adjunta un MP4 hecho fuera del estudio, como el que edita Carol. Es otro video:
+ * pasa por la puerta del MP4, aunque otro anterior ya estuviera aprobado.
+ */
+export async function attachVideo(workspaceId: string, pieceId: string, url: string, actor: Actor) {
+  const parsed = videoUrlSchema.safeParse(url);
+  if (!parsed.success) throw new GateError(parsed.error.issues[0].message);
+  const piece = await pieceInWorkspace(workspaceId, pieceId);
+  if (piece.instagramMediaId) throw new GateError("La pieza ya está publicada.");
+  const updated = await prisma.feedPiece.update({
+    where: { id: pieceId },
+    data: { videoUrl: parsed.data, needsVideo: true, gatesPassed: piece.gatesPassed.filter((g) => g !== "MP4") },
+  });
+  await logEvent(workspaceId, actor, "adjuntar_video", { pieceId, detail: parsed.data });
   return updated;
 }
 

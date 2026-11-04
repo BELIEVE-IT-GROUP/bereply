@@ -21,6 +21,16 @@ const logoUrl = z.string().refine((value) => {
   }
 }, "El logo tiene que venir de Maasy o de files.believe-global.com.");
 
+/** Un MP4 terminado solo se adjunta desde el R2 de Believe: es lo que Daniela va a publicar. */
+export const videoUrlSchema = z.string().refine((value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "files.believe-global.com" && url.pathname.endsWith(".mp4");
+  } catch {
+    return false;
+  }
+}, "El video tiene que ser un .mp4 en files.believe-global.com.");
+
 const color = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Color en formato #RRGGBB.");
 const ancla = z.string().regex(/^\S+(#\d+)?$/, "Una palabra de la voz, y #2 si es la segunda vez.");
 

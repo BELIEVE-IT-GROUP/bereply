@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/client";
 import { ACCOUNT_COOKIE, feedContext } from "@/lib/feed/context";
 import {
   approvePiece,
+  attachVideo,
   logEvent,
   publishPiece,
   refreshAccountMetrics,
@@ -57,6 +58,11 @@ export async function changesAction(form: FormData) {
 export async function blockAction(form: FormData) {
   const { workspaceId, actor } = await feedContext();
   await onPiece(form, (id) => setBlocker(workspaceId, id, actor, text(form, "who"), text(form, "reason")));
+}
+
+export async function attachVideoAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  await onPiece(form, (id) => attachVideo(workspaceId, id, text(form, "url") ?? "", actor));
 }
 
 export async function publishAction(form: FormData) {

@@ -11,6 +11,7 @@ import { fichaSchema, reelsPerDay, type Ficha } from "./ficha";
 import { skipSeparation, summarize, winners } from "./insights";
 import {
   accountByUsername,
+  attachVideo,
   createWeek,
   currentWeek,
   gateState,
@@ -257,6 +258,14 @@ export const TOOLS = {
       return { ok: true };
     },
   },
+  adjuntar_video: {
+    description: "Adjunta un MP4 ya terminado, en files.believe-global.com, a una pieza. Cierra la aprobación del MP4 anterior.",
+    input: pieza.extend({ url: z.string() }),
+    run: async (i: { pieza_id: string; url: string }, { workspaceId, actor }: Ctx) => {
+      await attachVideo(workspaceId, i.pieza_id, i.url, actor);
+      return { ok: true };
+    },
+  },
   pedir_reel: {
     description:
       "Encola la producción de un Reel a partir de su ficha (ver references/video.md del skill). Gasta dinero en fal y ElevenLabs por etapas y se detiene a revisión de cuadros antes de los clips.",
@@ -296,7 +305,7 @@ function schemaOf(input: z.ZodType) {
   return schema;
 }
 
-const WRITES = new Set<ToolName>(["guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "pedir_reel"]);
+const WRITES = new Set<ToolName>(["guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "adjuntar_video", "pedir_reel"]);
 
 /** Atiende un mensaje JSON-RPC. Devuelve null para las notificaciones, que no llevan respuesta. */
 export async function handleRpc(message: { id?: unknown; method?: string; params?: Record<string, unknown> }, ctx: Ctx) {
