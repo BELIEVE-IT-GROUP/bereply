@@ -1,0 +1,23 @@
+docs/manual/secciones/33-piezas-y-puertas.md
+  s_3b98e1c0506fdd::t_d04650f2cf7c9c 9-10
+docs/manual/secciones/34-el-estudio.md
+  s_3b98e1c0506fdd::t_4fc2304983e242 10
+docs/manual/secciones/35-el-tablero.md
+  s_3b98e1c0506fdd::t_5f4bac977a99c2 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
