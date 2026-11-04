@@ -43,8 +43,9 @@ export function planFromScript(rows: ScriptRow[]) {
   const voz: string[] = [];
   for (const row of rows) {
     const dicho = spoken(row.voice);
-    const pantalla = clean(row.screen);
-    const nota = `${row.voice} ${pantalla ? `[en pantalla: ${pantalla}]` : ""}`.trim();
+    // Lo que va entre paréntesis es dirección, no texto: nunca se quema en el video.
+    const pantalla = clean(row.screen.replace(/\([^)]*\)/g, " "));
+    const nota = `${row.voice} ${clean(row.screen) ? `[en pantalla: ${clean(row.screen)}]` : ""}`.trim();
     if (!dicho) {
       if (planos.length) planos[planos.length - 1].nota += ` / ${nota}`;
       continue;
@@ -56,8 +57,8 @@ export function planFromScript(rows: ScriptRow[]) {
     const numerado = pantalla.match(/^(\d+)\s*·\s*(.+)$/);
     if (numerado) {
       texto.push({ t: numerado[1], tipo: "n", en: primera }, { t: numerado[2], tipo: "b", en: anclas[1] ?? primera });
-    } else if (pantalla && !/\.(com|co|net|org)\b/i.test(pantalla)) {
-      texto.push({ t: pantalla.slice(0, 60), tipo: "b", en: primera });
+    } else if (pantalla && pantalla.length <= 60 && !/\.(com|co|net|org)\b/i.test(pantalla)) {
+      texto.push({ t: pantalla, tipo: "b", en: primera });
     }
     planos.push({
       id: `p${planos.length + 1}`,
@@ -109,4 +110,17 @@ export async function suggestVisuals(title: string, planos: DraftPlan[], brand: 
     console.error("[feed] no se pudieron sugerir los visuales:", error instanceof Error ? error.message : error);
     return { estilo_cuadro: "", musica_prompt: "", planos };
   }
+}
+
+/** La primera palabra de la voz, tal como la nombran las anclas de los planos. */
+export const firstWord = (voz: string) => norm(voz.split(" ")[0] ?? "");
+
+/** Cambia el texto principal de un plano. Vacío, lo quita. Un plano sin texto lo estrena en su primera palabra. */
+export function withScreenText(plan: Partial<Pick<DraftPlan, "texto" | "desde">>, text: string, first?: string): DraftPlan["texto"] {
+  const textos = plan.texto ?? [];
+  const main = textos.findIndex((x) => x.tipo !== "n");
+  if (!text) return main < 0 ? textos : textos.filter((_, i) => i !== main);
+  if (main >= 0) return textos.map((x, i) => (i === main ? { ...x, t: text } : x));
+  const en = plan.desde ?? first;
+  return en ? [...textos, { t: text, tipo: "b", en }] : textos;
 }

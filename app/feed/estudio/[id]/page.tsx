@@ -64,6 +64,7 @@ export default async function EstudioPiezaPage({
         Del guion al <i>MP4</i>
       </Head>
 
+      {job?.status === "EN_COLA" || job?.status === "CORRIENDO" ? <meta httpEquiv="refresh" content="20" /> : null}
       <ErrorNote error={error} />
       {job?.status === "FALLO" && job.log ? <p className="err" role="alert">Falló: {job.log}</p> : null}
 
@@ -119,7 +120,7 @@ export default async function EstudioPiezaPage({
                   ))}
                 </div>
               </div>
-              {job.status === "CORRIENDO" || job.status === "EN_COLA" ? <p className="sub">Se está produciendo. Esta pantalla se actualiza al recargar.</p> : null}
+              {job.status === "CORRIENDO" || job.status === "EN_COLA" ? <p className="sub">Se está produciendo. Esta pantalla se actualiza sola.</p> : null}
             </section>
 
             <aside className="card" style={{ gap: 2 }}>

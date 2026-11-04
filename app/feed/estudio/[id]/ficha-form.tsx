@@ -1,6 +1,6 @@
 import { saveFichaAction } from "../../studio-actions";
 
-type Plan = { id: string; nota?: string; cuadro?: string; movimiento?: string };
+type Plan = { id: string; nota?: string; cuadro?: string; movimiento?: string; texto?: Array<{ t: string; tipo: string }> };
 export type DraftFicha = {
   logo_url?: string;
   acento?: string;
@@ -30,6 +30,8 @@ export function FichaForm({ pieceId, ficha, canProduce, why }: { pieceId: string
           {(ficha.planos ?? []).map((p) => (
             <div key={p.id} className="card">
               <span className="rot">{p.id}{p.nota ? ` · ${p.nota}` : ""}</span>
+              <label className="rot" htmlFor={`texto:${p.id}`}>Texto en pantalla</label>
+              <input className="input" id={`texto:${p.id}`} name={`texto:${p.id}`} maxLength={60} defaultValue={(p.texto ?? []).find((x) => x.tipo !== "n")?.t ?? ""} placeholder="Lo que sale escrito. Vacío, no sale nada" />
               <label className="rot" htmlFor={`cuadro:${p.id}`}>Imagen</label>
               <textarea className="input" id={`cuadro:${p.id}`} name={`cuadro:${p.id}`} rows={3} defaultValue={p.cuadro ?? ""} />
               <label className="rot" htmlFor={`movimiento:${p.id}`}>Movimiento</label>

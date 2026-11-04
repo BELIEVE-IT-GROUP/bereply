@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
-import { planFromScript } from "@/lib/feed/draft-ficha";
+import { planFromScript, withScreenText } from "@/lib/feed/draft-ficha";
 import { textsToLint, unsourcedFigures } from "@/lib/feed/generate";
 import { boardName, boardStage, readyForBoard } from "@/lib/feed/maas2";
 import { fichaSchema, videoUrlSchema } from "@/lib/feed/ficha";
@@ -338,5 +338,24 @@ describe("cifras sin fuente", () => {
   });
   it("ignora horas y números de un dígito", () => {
     expect(unsourcedFigures("A las 11:00 p. m., en 3 pasos, sábado 8 p. m.", fuente)).toEqual([]);
+  });
+});
+
+describe("texto en pantalla del Reel", () => {
+  it("no quema las indicaciones de dirección", () => {
+    const { planos } = planFromScript([{ time: "0 a 2 s", voice: "Hola mundo", screen: "(Seis post-its en la pared) Hola" }, { time: "2 a 4 s", voice: "Sigue ahí", screen: "(Solo una tarjeta)" }]);
+    expect(planos[0].texto).toEqual([{ t: "Hola", tipo: "b", en: "hola" }]);
+    expect(planos[1].texto).toEqual([]);
+  });
+  it("un texto demasiado largo no se corta a la mitad", () => {
+    const { planos } = planFromScript([{ time: "0 a 2 s", voice: "Hola", screen: "x".repeat(61) }]);
+    expect(planos[0].texto).toEqual([]);
+  });
+  it("se edita, se quita y se estrena", () => {
+    const con = { desde: "la", texto: [{ t: "1", tipo: "n" as const, en: "la" }, { t: "Viejo", tipo: "b" as const, en: "la" }] };
+    expect(withScreenText(con, "Nuevo")[1].t).toBe("Nuevo");
+    expect(withScreenText(con, "")).toEqual([con.texto[0]]);
+    expect(withScreenText({ desde: "la", texto: [] }, "Nuevo")).toEqual([{ t: "Nuevo", tipo: "b", en: "la" }]);
+    expect(withScreenText({ texto: [] }, "Nuevo", "hola")).toEqual([{ t: "Nuevo", tipo: "b", en: "hola" }]);
   });
 });

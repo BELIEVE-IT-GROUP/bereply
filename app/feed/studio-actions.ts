@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
-import { planFromScript, suggestVisuals, type ScriptRow } from "@/lib/feed/draft-ficha";
+import { planFromScript, suggestVisuals, type DraftPlan, type ScriptRow, firstWord, withScreenText } from "@/lib/feed/draft-ficha";
 import { fichaSchema, reelsPerDay } from "@/lib/feed/ficha";
 import { logEvent } from "@/lib/feed/service";
 import { assertCanProduce, GateError } from "@/lib/feed/stages";
@@ -124,7 +124,7 @@ export async function saveFichaAction(form: FormData) {
     estilo_cuadro: texto("estilo_cuadro"),
     voz: { ...actual.voz, texto: texto("voz") },
     cierre: { ...actual.cierre, url: texto("cierre") },
-    planos: (actual.planos ?? []).map((p) => ({ ...p, cuadro: texto(`cuadro:${p.id}`), movimiento: texto(`movimiento:${p.id}`) })),
+    planos: (actual.planos ?? []).map((p, i) => ({ ...p, texto: withScreenText(p as Partial<DraftPlan>, texto(`texto:${p.id}`), i === 0 ? firstWord(texto("voz")) : undefined), cuadro: texto(`cuadro:${p.id}`), movimiento: texto(`movimiento:${p.id}`) })),
   };
   await prisma.feedReelJob.update({ where: { id: piece.job.id }, data: { ficha: ficha as Prisma.InputJsonValue } });
 
