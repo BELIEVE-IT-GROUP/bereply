@@ -1,0 +1,81 @@
+app/api/feed/upload/route.ts
+  s_3b98e1c0506fdd::t_2c2e173558a7e9 1-65
+app/feed/account-select.tsx
+  s_3b98e1c0506fdd::t_9e9726add48191 1-17
+lib/feed/draft-ficha.ts
+  s_3b98e1c0506fdd::t_b29cde2c44a56a 1-112
+app/feed/studio-actions.ts
+  s_3b98e1c0506fdd::t_6f0906d0758999 4-5,8-9,11-18,46-148
+app/feed/estudio/[id]/ficha-form.tsx
+  s_3b98e1c0506fdd::t_34c468ea701cc9 1-64
+app/feed/media.tsx
+  s_3b98e1c0506fdd::t_9f4456ae287c23 1-109
+lib/feed/media.ts
+  s_3b98e1c0506fdd::t_40de9c3f87fbb5 1-53
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_4b39faab65b16d 2,7,193-249
+app/feed/actions.ts
+  s_3b98e1c0506fdd::t_a057547d798124 180-197
+app/feed/agente/page.tsx
+  s_3b98e1c0506fdd::t_5ae42119c0134f 33
+app/feed/cierre/page.tsx
+  s_3b98e1c0506fdd::t_ed1f568c4353f1 14,28
+app/feed/cuentas/page.tsx
+  s_3b98e1c0506fdd::t_26e30026e8bef4 20,22-27,67
+app/feed/estudio/[id]/page.tsx
+  s_3b98e1c0506fdd::t_3e10aefe1b3d60 5,8,10,28-34,47-48,68-84,98
+app/feed/estudio/job.ts
+  s_3b98e1c0506fdd::t_987129273f24ed 4,14
+app/feed/estudio/page.tsx
+  s_3b98e1c0506fdd::t_1e5b6b75bf3d1d 10,18,21,23,28
+app/feed/feed.css
+  s_3b98e1c0506fdd::t_499603cfd85b87 92-100
+app/feed/ideas/page.tsx
+  s_3b98e1c0506fdd::t_e25c1cec8b55a6 29
+app/feed/layout.tsx
+  s_3b98e1c0506fdd::t_2a831da06a9745 4,14,33
+app/feed/marca/page.tsx
+  s_3b98e1c0506fdd::t_d55f28e366d47e 24,36
+app/feed/metricas/page.tsx
+  s_3b98e1c0506fdd::t_d0f9aa3dfeaf5b 26
+app/feed/nav.tsx
+  s_3b98e1c0506fdd::t_d80156cf507e04 32
+app/feed/pieza/[id]/page.tsx
+  s_3b98e1c0506fdd::t_a9a4ac7a27e989 8-9,37,52-53,56-60,77,166-167,171
+app/feed/semana/page.tsx
+  s_3b98e1c0506fdd::t_eade2ee78701c5 16,25
+app/feed/ui.tsx
+  s_3b98e1c0506fdd::t_672c7a453455fe 1,24,28
+components/sidebar.tsx
+  s_3b98e1c0506fdd::t_db50cc83d54198 22
+lib/auth.ts
+  s_3b98e1c0506fdd::t_a4c37e558569ab 37-45
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_91e7e3461b71d0 26,277
+lib/feed/service.ts
+  s_3b98e1c0506fdd::t_38eddca5c1aac8 10,130-135
+lib/feed/stages.ts
+  s_3b98e1c0506fdd::t_c70fe85d7b8ee8 82-88
+prisma/migrations/20261104200000_befeed_assets_borrador/migration.sql
+  s_3b98e1c0506fdd::t_aa47fe5b85250b 1-5
+prisma/migrations/20261104200100_befeed_job_default/migration.sql
+  s_3b98e1c0506fdd::t_a54cd3f48bbdee 1-2
+prisma/schema.prisma
+  s_3b98e1c0506fdd::t_12671c99e77d5a 476,530-531,650
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8be25ca5c1241b7e2fbf8a2d94703e8982ba799e",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
