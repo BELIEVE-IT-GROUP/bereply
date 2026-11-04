@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { planFromScript } from "@/lib/feed/draft-ficha";
 import { fichaSchema, videoUrlSchema } from "@/lib/feed/ficha";
 import { median, skipSeparation, summarize, winners, worstHook, type ReelStats } from "@/lib/feed/insights";
 import {
   approve,
+  assertCanProduce,
   GateError,
   markPublished,
   nextGate,
@@ -186,5 +188,62 @@ describe("video adjunto", () => {
     "no es una url",
   ])("rechaza %s", (url) => {
     expect(videoUrlSchema.safeParse(url).success).toBe(false);
+  });
+});
+
+describe("del guion a la ficha", () => {
+  const guion = [
+    { time: "0 a 2 s", voice: "El plan del viernes, armado en tres pasos.", screen: "3 PASOS" },
+    { time: "2 a 5 s", voice: "¿Ya sabes con quién vas? Listo.", screen: "¿YA SABES CON QUIÉN?" },
+    { time: "5 a 9 s", voice: "Uno: la boleta, desde el celular.", screen: "1 · BOLETA EN LA WEB" },
+    { time: "9 a 13 s", voice: "(cámara lenta del caramelo)", screen: "🍿" },
+    { time: "13 a 16 s", voice: "Tres: el parqueo, resuelto. (carro)", screen: "3 · PARQUEO RESUELTO 🚗" },
+    { time: "16 a 18 s", voice: "El plan es Uniplaza.", screen: "cinemauniplaza.com.co" },
+  ];
+
+  it("saca solo lo que se dice para la voz", () => {
+    const { voz } = planFromScript(guion);
+    expect(voz).not.toContain("cámara lenta");
+    expect(voz).toContain("Tres: el parqueo, resuelto.");
+  });
+
+  it("une al plano anterior una fila sin voz, porque no tiene palabra donde cortar", () => {
+    const { planos } = planFromScript(guion);
+    expect(planos).toHaveLength(5);
+    expect(planos[2].nota).toContain("cámara lenta");
+  });
+
+  it("ancla los cortes a la vez correcta de cada palabra", () => {
+    const { planos } = planFromScript(guion);
+    expect(planos[0].desde).toBeUndefined();
+    expect(planos[1].desde).toBe("¿ya".replace("¿", ""));
+    expect(planos[3].desde).toBe("tres#2");
+    expect(planos[4].desde).toBe("el#4");
+  });
+
+  it("separa el número del paso y limpia los emojis", () => {
+    const { planos } = planFromScript(guion);
+    expect(planos[3].texto).toEqual([
+      { t: "3", tipo: "n", en: "tres#2" },
+      { t: "PARQUEO RESUELTO", tipo: "b", en: "el#3" },
+    ]);
+  });
+
+  it("deja la web para el cierre y no como texto de un plano", () => {
+    const { planos, web } = planFromScript(guion);
+    expect(web).toBe("cinemauniplaza.com.co");
+    expect(planos[4].texto).toEqual([]);
+  });
+
+  it("no acepta un guion con datos sin resolver ni sin voz", () => {
+    expect(() => planFromScript([{ time: "0", voice: "Tarea: {{película}}", screen: "" }])).toThrow("sin resolver");
+    expect(() => planFromScript([{ time: "0", voice: "(solo imagen)", screen: "" }])).toThrow("no tiene voz");
+  });
+
+  it("solo se produce después de los dos filtros y sin freno", () => {
+    expect(() => assertCanProduce({ gatesPassed: [], blockedBy: null })).toThrow("Daniela y Jorge");
+    expect(() => assertCanProduce({ gatesPassed: ["DANIELA"], blockedBy: null })).toThrow("Jorge");
+    expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: "Luis" })).toThrow("Luis");
+    expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: null })).not.toThrow();
   });
 });

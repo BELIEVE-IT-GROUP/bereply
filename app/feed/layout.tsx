@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
+import { AccountSelect } from "./account-select";
 import { FeedNav } from "./nav";
 import "./feed.css";
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function FeedLayout({ children }: { children: React.ReactNode }) {
-  const { workspaceId, account, actor } = await feedContext();
+  const { workspaceId, accounts, account, actor } = await feedContext();
   const today = new Date(new Date().toISOString().slice(0, 10));
   const pendientes = await prisma.feedPiece.count({
     where: { week: { workspaceId, endsOn: { gte: today } }, blockedBy: { not: null } },
@@ -30,10 +30,7 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
           <div className="wm">
             <span>Be</span>Feed<small className="by">by Believe</small>
           </div>
-          <Link className="marca" href="/feed/cuentas">
-            <small>Marca</small>
-            <b>{account ? `@${account.username}` : "Sin cuentas"}</b>
-          </Link>
+          <AccountSelect accounts={accounts} current={account?.id ?? null} />
           <FeedNav pendientes={pendientes} />
           <div className="quien"><b>{actor.name}</b></div>
         </aside>

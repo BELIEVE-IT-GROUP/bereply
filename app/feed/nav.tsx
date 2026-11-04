@@ -29,6 +29,7 @@ export function FeedNav({ pendientes }: { pendientes: number }) {
           {href === "/feed" && pendientes > 0 ? <em>{pendientes}</em> : null}
         </Link>
       ))}
+      <Link href="/dashboard" className="salto">BeReply →</Link>
     </nav>
   );
 }

@@ -19,6 +19,7 @@ const navItems = [
   { label: "DM Logs", href: "/logs" },
   { label: "Settings", href: "/settings" },
   { label: "Diagnostics", href: "/diagnostics" },
+  { label: "BeFeed →", href: "/feed" },
 ];
 
 interface SidebarProps {

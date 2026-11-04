@@ -79,3 +79,10 @@ export function markPublished(piece: PieceGateState, instagramMediaId: string, a
   if (stageFor(piece) !== "LISTA") throw new GateError("Solo se publica lo que pasó todas las puertas.");
   return { ...piece, instagramMediaId, stage: "PUBLICADA" };
 }
+
+/** El Reel se paga después de los dos filtros internos: un Reel rehecho cuesta plata, un guion rehecho no. */
+export function assertCanProduce(piece: Pick<PieceGateState, "gatesPassed" | "blockedBy">) {
+  if (piece.blockedBy) throw new GateError(`Está frenada: la tiene ${piece.blockedBy}.`);
+  const faltan = (["DANIELA", "JORGE"] as const).filter((g) => !piece.gatesPassed.includes(g));
+  if (faltan.length) throw new GateError(`Antes de producir falta el filtro de ${faltan.map((g) => (g === "DANIELA" ? "Daniela" : "Jorge")).join(" y ")}.`);
+}

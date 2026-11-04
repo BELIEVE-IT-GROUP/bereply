@@ -23,7 +23,7 @@ import {
   stageFor,
   submitPiece,
 } from "./service";
-import type { Actor } from "./stages";
+import { assertCanProduce, type Actor } from "./stages";
 
 type Ctx = { workspaceId: string; actor: Actor };
 
@@ -274,7 +274,7 @@ export const TOOLS = {
       const p = await prisma.feedPiece.findFirst({ where: { id: i.pieza_id, week: { workspaceId } }, include: { job: true } });
       if (!p) throw new Error("Esa pieza no existe en este espacio.");
       if (!p.needsVideo) throw new Error("Esa pieza no lleva video.");
-      if (p.blockedBy) throw new Error(`Está frenada: la tiene ${p.blockedBy}.`);
+      assertCanProduce(p);
       if (p.job && (p.job.status === "EN_COLA" || p.job.status === "CORRIENDO")) throw new Error("Ya se está produciendo.");
       const hoy = await prisma.feedEvent.count({
         where: { workspaceId, action: "pedir_reel", outcome: "ok", createdAt: { gte: new Date(Date.now() - 86_400_000) } },

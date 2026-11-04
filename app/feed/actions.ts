@@ -177,3 +177,21 @@ export async function revokeTokenAction(form: FormData) {
   await logEvent(workspaceId, actor, "revocar_acceso");
   revalidatePath("/feed/agente");
 }
+
+export async function removeAssetAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  const pieceId = text(form, "pieceId") ?? "";
+  const piece = await prisma.feedPiece.findFirst({ where: { id: pieceId, week: { workspaceId } } });
+  if (!piece) return;
+  const url = text(form, "url");
+  const assets = ((piece.assets ?? []) as Array<{ url: string; name?: string }>).filter((a) => a.url !== url);
+  await prisma.feedPiece.update({
+    where: { id: pieceId },
+    data: {
+      assets,
+      thumbnailUrl: piece.thumbnailUrl === url ? (assets[0]?.url ?? null) : piece.thumbnailUrl,
+    },
+  });
+  await logEvent(workspaceId, actor, "quitar_imagen", { pieceId });
+  revalidatePath("/feed", "layout");
+}

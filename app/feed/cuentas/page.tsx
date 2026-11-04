@@ -17,8 +17,14 @@ export default async function CuentasPage() {
   return (
     <>
       <Head
+        back={{ href: "/feed", label: "Hoy" }}
         eye="Instagram, por la API oficial de Meta"
-        actions={<a className="btn pri" href="/api/instagram/connect">Conectar Instagram</a>}
+        actions={
+          <>
+            <a className="btn" href="https://developers.facebook.com/apps/1639023537659541/roles/roles/" target="_blank" rel="noreferrer">Invitar en Meta</a>
+            <a className="btn pri" href="/api/instagram/connect">Conectar Instagram</a>
+          </>
+        }
       >
         {accounts.length === 1 ? "Una cuenta conectada" : `${accounts.length} cuentas conectadas`}
       </Head>
@@ -58,7 +64,7 @@ export default async function CuentasPage() {
             <div className="paso"><b>2. Aceptar</b><small>En Instagram web</small></div>
             <div className="paso"><b>3. Conectar</b><small>Aquí</small></div>
           </div>
-          <p className="sub" style={{ fontSize: 13 }}>Funciona hoy, con métricas completas. La invitación se hace como Evaluador de Instagram.</p>
+          <p className="sub" style={{ fontSize: 13 }}>Funciona hoy, con métricas completas. Meta no deja invitar desde otra app: el botón Invitar en Meta abre su panel, en Agregar personas, Evaluador de Instagram.</p>
         </section>
         <section className="card">
           <h2 className="s">Clientes que se conectan solos</h2>

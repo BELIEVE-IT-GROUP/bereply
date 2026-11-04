@@ -21,7 +21,7 @@ export default async function MarcaPage() {
   if (!row) {
     return (
       <>
-        <Head eye={`@${account.username} · Lo que el agente sabe de esta marca`}>Esta marca aún no tiene <i>arranque</i></Head>
+        <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username} · Lo que el agente sabe de esta marca`}>Esta marca aún no tiene <i>arranque</i></Head>
         <p className="aviso">Pídele al agente el arranque de cuenta: lee la estrategia en MAAS2 y la voz en Maasy, y lo deja aquí con <span className="mono">guardar_marca</span>.</p>
       </>
     );
@@ -33,7 +33,7 @@ export default async function MarcaPage() {
 
   return (
     <>
-      <Head eye={`@${account.username} · Lo que el agente sabe de esta marca`}>{p.belief ?? <>El perfil de <i>la marca</i></>}</Head>
+      <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username} · Lo que el agente sabe de esta marca`}>{p.belief ?? <>El perfil de <i>la marca</i></>}</Head>
 
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 28, alignItems: "start" }}>
         <section className="plano">

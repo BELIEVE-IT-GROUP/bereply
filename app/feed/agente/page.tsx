@@ -30,7 +30,7 @@ export default async function AgentePage() {
 
   return (
     <>
-      <Head eye="Claude o George, con el mismo motor">
+      <Head back={{ href: "/feed", label: "Hoy" }} eye="Claude o George, con el mismo motor">
         El agente propone. <i>La puerta la abres tú</i>
       </Head>
 

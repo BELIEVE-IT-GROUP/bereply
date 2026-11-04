@@ -23,6 +23,7 @@ export default async function MetricasPage() {
   return (
     <>
       <Head
+        back={{ href: "/feed", label: "Hoy" }}
         eye={`@${account.username} · Últimos ${reels.length} Reels${ultima ? ` · Leído ${moment(ultima.capturedAt)}` : ""}`}
         actions={
           <>

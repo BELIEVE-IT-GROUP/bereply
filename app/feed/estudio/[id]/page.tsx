@@ -2,9 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
+import { assertCanProduce } from "@/lib/feed/stages";
 import { continueJobAction, rebuildJobAction, redoPlanAction } from "../../studio-actions";
 import { ErrorNote, Head } from "../../ui";
+import { PieceMedia } from "../../media";
 import { JOB_LABEL, JOB_STEPS } from "../job";
+import { FichaForm, type DraftFicha } from "./ficha-form";
 
 type Plan = { id: string; imagen?: string; t?: number; texto?: Array<{ t: string }> };
 type Audio = { lufs?: number; truePeakDb?: number; durationS?: number; earshot?: string };
@@ -22,6 +25,13 @@ export default async function EstudioPiezaPage({
   const piece = await prisma.feedPiece.findFirst({ where: { id, week: { workspaceId } }, include: { job: true } });
   if (!piece) notFound();
   const job = piece.job;
+  const assets = (piece.assets ?? []) as Array<{ url: string; name?: string }>;
+  let puedeProducir: string | null = null;
+  try {
+    assertCanProduce(piece);
+  } catch (e) {
+    puedeProducir = e instanceof Error ? e.message : "No se puede producir todavía.";
+  }
   const planos = ((job?.ficha as { planos?: Plan[] } | undefined)?.planos ?? []) as Plan[];
   const audio = (job?.audio ?? null) as Audio | null;
   const hecho = (step: string) => {
@@ -34,7 +44,8 @@ export default async function EstudioPiezaPage({
   return (
     <>
       <Head
-        eye={<><Link href={`/feed/pieza/${piece.id}`} style={{ color: "inherit" }}>{piece.title}</Link> / 9:16{audio?.durationS ? ` / ${audio.durationS.toFixed(1).replace(".", ",")} s` : ""}</>}
+        back={{ href: `/feed/pieza/${piece.id}`, label: "Volver a la pieza" }}
+        eye={<>{piece.title} / 9:16{audio?.durationS ? ` / ${audio.durationS.toFixed(1).replace(".", ",")} s` : ""}</>}
         actions={
           <>
             {job?.status === "ESPERA_REVISION" ? (
@@ -43,7 +54,6 @@ export default async function EstudioPiezaPage({
             {job?.status === "LISTO" || job?.status === "FALLO" ? (
               <form action={rebuildJobAction}><input type="hidden" name="pieceId" value={piece.id} /><button className="btn" type="submit">Volver a armar, gratis</button></form>
             ) : null}
-            {piece.videoUrl ? <a className="btn" href={piece.videoUrl} target="_blank" rel="noreferrer">Ver el MP4</a> : null}
             {piece.videoUrl && !piece.gatesPassed.includes("MP4") ? <Link className="btn pri" href={`/feed/pieza/${piece.id}`}>Ir a aprobar</Link> : null}
           </>
         }
@@ -55,7 +65,23 @@ export default async function EstudioPiezaPage({
       {job?.status === "FALLO" && job.log ? <p className="err" role="alert">Falló: {job.log}</p> : null}
 
       {!job ? (
-        <p className="aviso">Esta pieza aún no tiene ficha. Pídesela al agente con <span className="mono">pedir_reel</span>: la ficha sale del guion aprobado.</p>
+        <div className="dos">
+          <section style={{ maxWidth: 340 }}>
+            <PieceMedia pieceId={piece.id} videoUrl={piece.videoUrl} thumbnailUrl={piece.thumbnailUrl} assets={assets} />
+          </section>
+          <section className="plano">
+            <h2 className="s">{piece.videoUrl ? "Este video se adjuntó" : "Todavía no hay ficha"}</h2>
+            <p className="sub">{piece.videoUrl ? "No se produjo aquí, por eso no tiene planos ni etapas. Se aprueba desde la pieza." : "Abre la pieza y usa Enviar a Estudio: el borrador sale de su guion."}</p>
+            <div><Link className="btn" href={`/feed/pieza/${piece.id}`}>Ir a la pieza</Link></div>
+          </section>
+        </div>
+      ) : job.status === "BORRADOR" ? (
+        <FichaForm
+          pieceId={piece.id}
+          ficha={job.ficha as DraftFicha}
+          canProduce={puedeProducir === null}
+          why={puedeProducir ?? undefined}
+        />
       ) : (
         <>
           <div className="pasos" aria-label="Etapas de producción">
@@ -69,6 +95,7 @@ export default async function EstudioPiezaPage({
 
           <div className="dos">
             <section style={{ display: "flex", flexDirection: "column", gap: 18, minWidth: 0 }}>
+              {piece.videoUrl ? <div style={{ maxWidth: 340 }}><PieceMedia pieceId={piece.id} videoUrl={piece.videoUrl} thumbnailUrl={piece.thumbnailUrl} assets={[]} /></div> : null}
               <div className="caja">
                 <div className="grid" style={{ gridTemplateColumns: `repeat(${Math.max(planos.length, 1)}, minmax(92px, 1fr))`, gap: 10, minWidth: Math.max(planos.length, 1) * 102 }}>
                   {planos.map((p) => (

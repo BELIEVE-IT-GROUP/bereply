@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "FeedReelJob" ALTER COLUMN "status" SET DEFAULT 'BORRADOR';

@@ -473,6 +473,7 @@ enum FeedFormat {
 }
 
 enum FeedJobStatus {
+  BORRADOR
   EN_COLA
   CORRIENDO
   ESPERA_REVISION
@@ -526,6 +527,8 @@ model FeedPiece {
   blockedBy        String?
   blockedReason    String?
   videoUrl         String?
+  /// Imágenes de un carrusel, post o historia: [{ url, name }]
+  assets           Json       @default("[]")
   thumbnailUrl     String?
   instagramMediaId String?
   repeatDecision   String?
@@ -644,7 +647,7 @@ model FeedReelJob {
   /// La ficha que lee tools/reel.py.
   ficha     Json          @default("{}")
   step      String        @default("voz")
-  status    FeedJobStatus @default(EN_COLA)
+  status    FeedJobStatus @default(BORRADOR)
   log       String?
   costUsd   Float?
   /// { lufs, truePeakDb, durationS }

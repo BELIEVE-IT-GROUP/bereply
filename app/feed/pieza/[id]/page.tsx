@@ -5,6 +5,8 @@ import { feedContext } from "@/lib/feed/context";
 import { gateState, stageFor } from "@/lib/feed/service";
 import { GATES, nextGate, type Gate } from "@/lib/feed/stages";
 import { approveAction, attachVideoAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
+import { PieceMedia, UploadForm } from "../../media";
+import { sendToStudioAction } from "../../studio-actions";
 import { FORMAT_LABEL, GATE_HINT, GATE_LABEL, STAGE_LABEL } from "../../gates";
 import { day, ErrorNote, firstLine, Head, moment } from "../../ui";
 
@@ -32,6 +34,7 @@ export default async function PiezaPage({
   const gate = nextGate(state);
   const hooks = (piece.hooks ?? []) as Hook[];
   const script = (piece.script ?? []) as Row[];
+  const assets = (piece.assets ?? []) as Array<{ url: string; name?: string }>;
   const gates: Gate[] = GATES.filter((g) => g !== "MP4" || piece.needsVideo);
   const sinUsar =
     stage === "LISTA"
@@ -46,10 +49,15 @@ export default async function PiezaPage({
   return (
     <>
       <Head
-        eye={<><Link href="/feed/semana" style={{ color: "inherit" }}>Semana</Link> / {day(piece.publishOn)} / {piece.drip ? `${piece.drip} / ` : ""}{FORMAT_LABEL[piece.format]}</>}
+        back={{ href: "/feed/semana", label: "Semana" }}
+        eye={<>{day(piece.publishOn)} / {piece.drip ? `${piece.drip} / ` : ""}{FORMAT_LABEL[piece.format]}</>}
         actions={
           <>
-            {piece.needsVideo ? <Link className="btn" href={`/feed/estudio/${piece.id}`}>Abrir en estudio</Link> : null}
+            {piece.job || piece.videoUrl ? (
+              <Link className="btn" href={`/feed/estudio/${piece.id}`}>Abrir en Estudio</Link>
+            ) : piece.format === "REEL" && script.length > 0 ? (
+              <form action={sendToStudioAction}>{hidden}<button className="btn" type="submit">Enviar a Estudio</button></form>
+            ) : null}
             {stage === "GUION" ? (
               <form action={submitAction}>{hidden}<button className="btn pri" type="submit">Pasar a filtros</button></form>
             ) : gate && stage !== "PUBLICADA" ? (
@@ -66,11 +74,7 @@ export default async function PiezaPage({
 
       <div className="tres">
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {piece.thumbnailUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={piece.thumbnailUrl} alt="" style={{ width: "100%", aspectRatio: "9/16", objectFit: "cover", borderRadius: 2, display: "block" }} />
-          ) : null}
-          {piece.videoUrl ? <a className="btn" href={piece.videoUrl} target="_blank" rel="noreferrer">Ver el MP4</a> : null}
+          <PieceMedia pieceId={piece.id} videoUrl={piece.videoUrl} thumbnailUrl={piece.thumbnailUrl} assets={assets} canEdit={stage !== "PUBLICADA"} />
           <div className="fila" style={{ gap: 6 }}>
             <span className="tag">{STAGE_LABEL[stage]}</span>
             {piece.linterClean ? <span className="tag ok">Linter limpio</span> : <span className="tag freno">Linter pendiente</span>}
@@ -159,10 +163,12 @@ export default async function PiezaPage({
             </form>
           ) : null}
 
+          {stage !== "PUBLICADA" ? <UploadForm pieceId={piece.id} hasVideo={Boolean(piece.videoUrl)} /> : null}
+
           {stage !== "PUBLICADA" ? (
             <form action={attachVideoAction} className="card">
               {hidden}
-              <label className="s" htmlFor="url">{piece.videoUrl ? "Cambiar el MP4" : "Adjuntar un MP4"}</label>
+              <label className="s" htmlFor="url">{piece.videoUrl ? "Cambiar el MP4 por link" : "Adjuntar un MP4 por link"}</label>
               <input className="input" id="url" name="url" type="url" required placeholder="https://files.believe-global.com/….mp4" />
               <p className="sub" style={{ fontSize: 13 }}>Para lo que edita Carol. Un video nuevo se vuelve a aprobar.</p>
               <button className="btn" type="submit">Adjuntar</button>

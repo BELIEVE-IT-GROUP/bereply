@@ -26,7 +26,7 @@ export default async function IdeasPage() {
 
   return (
     <>
-      <Head eye={`@${account.username} · Ganadores propios y cuentas de referencia`}>
+      <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username} · Ganadores propios y cuentas de referencia`}>
         Primero repite lo que <i>ya te funcionó</i>
       </Head>
 

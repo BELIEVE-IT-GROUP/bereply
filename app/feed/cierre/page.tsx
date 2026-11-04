@@ -11,7 +11,7 @@ export default async function CierrePage() {
   if (!week) {
     return (
       <>
-        <Head eye={`@${account.username}`}>Todavía no hay <i>qué cerrar</i></Head>
+        <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username}`}>Todavía no hay <i>qué cerrar</i></Head>
         <p className="aviso">El cierre aparece cuando exista una semana.</p>
       </>
     );
@@ -25,6 +25,7 @@ export default async function CierrePage() {
     <form action={saveClosingAction} style={{ display: "contents" }}>
       <input type="hidden" name="weekId" value={week.id} />
       <Head
+        back={{ href: "/feed/semana", label: "Semana" }}
         eye={`@${account.username} · Semana del ${day(week.startsOn, { day: "numeric", month: "long" })} al ${day(week.endsOn, { day: "numeric", month: "long" })}${c?.closedAt ? ` · Cerrada ${moment(c.closedAt)}` : ""}`}
         actions={
           <>

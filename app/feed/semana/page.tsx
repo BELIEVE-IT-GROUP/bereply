@@ -13,7 +13,7 @@ export default async function SemanaPage() {
   if (!week) {
     return (
       <>
-        <Head eye={`@${account.username}`}>Todavía no hay <i>semana</i></Head>
+        <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username}`}>Todavía no hay <i>semana</i></Head>
         <p className="aviso">Pídesela al agente: escribe la semana con la estrategia de la marca y la deja aquí, en guion. Herramienta <span className="mono">crear_semana</span>.</p>
       </>
     );
@@ -22,6 +22,7 @@ export default async function SemanaPage() {
   return (
     <>
       <Head
+        back={{ href: "/feed", label: "Hoy" }}
         eye={`@${account.username} · ${day(week.startsOn, { day: "numeric", month: "long" })} a ${day(week.endsOn, { day: "numeric", month: "long" })}`}
         actions={<Link className="btn" href="/feed/cierre">Ver el cierre</Link>}
       >

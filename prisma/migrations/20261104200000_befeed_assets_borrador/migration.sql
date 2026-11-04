@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "FeedJobStatus" ADD VALUE IF NOT EXISTS 'BORRADOR' BEFORE 'EN_COLA';
+
+-- AlterTable
+ALTER TABLE "FeedPiece" ADD COLUMN "assets" JSONB NOT NULL DEFAULT '[]';

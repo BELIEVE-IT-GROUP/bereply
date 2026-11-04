@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/client";
 import { getMediaInsights, getUserMedia, PermissionError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/oauth";
 import { videoUrlSchema } from "./ficha";
+import { makePoster } from "./media";
 import {
   approve,
   GateError,
@@ -126,7 +127,12 @@ export async function attachVideo(workspaceId: string, pieceId: string, url: str
   if (piece.instagramMediaId) throw new GateError("La pieza ya está publicada.");
   const updated = await prisma.feedPiece.update({
     where: { id: pieceId },
-    data: { videoUrl: parsed.data, needsVideo: true, gatesPassed: piece.gatesPassed.filter((g) => g !== "MP4") },
+    data: {
+      videoUrl: parsed.data,
+      needsVideo: true,
+      gatesPassed: piece.gatesPassed.filter((g) => g !== "MP4"),
+      thumbnailUrl: (await makePoster(parsed.data, pieceId)) ?? piece.thumbnailUrl,
+    },
   });
   await logEvent(workspaceId, actor, "adjuntar_video", { pieceId, detail: parsed.data });
   return updated;

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 const NUM = new Intl.NumberFormat("es-CO");
@@ -20,10 +21,11 @@ export const firstLine = (text: string | null | undefined, max = 60) => {
   return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
 };
 
-export function Head({ eye, children, actions }: { eye: ReactNode; children: ReactNode; actions?: ReactNode }) {
+export function Head({ eye, children, actions, back }: { eye: ReactNode; children: ReactNode; actions?: ReactNode; back?: { href: string; label: string } }) {
   return (
     <header className="tope">
       <div>
+        {back ? <Link className="volver" href={back.href}>← {back.label}</Link> : null}
         <p className="eye">{eye}</p>
         <h1 className="t">
           {children}

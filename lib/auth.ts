@@ -34,7 +34,15 @@ export const authConfig = {
     // Runs before the magic link is sent, so a blocked address never receives
     // one, and again when the link is verified.
     async signIn({ user }) {
-      return isEmailAllowedToSignIn(user?.email);
+      if (isEmailAllowedToSignIn(user?.email)) return true;
+      // Invitar a alguien desde el panel basta: no hay que tocar ALLOWED_EMAILS.
+      if (!user?.email) return false;
+      const email = user.email.toLowerCase();
+      const [invitacion, usuario] = await Promise.all([
+        prisma.workspaceInvitation.findFirst({ where: { email, status: "PENDING", expiresAt: { gt: new Date() } }, select: { id: true } }),
+        prisma.user.findFirst({ where: { email, workspaceMembers: { some: {} } }, select: { id: true } }),
+      ]);
+      return Boolean(invitacion || usuario);
     },
     async session({ session, user }) {
       if (session.user) {
