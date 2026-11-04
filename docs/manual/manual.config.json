@@ -64,7 +64,7 @@
       "producto": "BeFeed",
       "subtitle": "Cómo se controla el Instagram orgánico de cada marca: generar la semana, repartirla, producir Reels, aprobar con el cliente en el tablero de MAAS2 y medir.",
       "benotes_title": "BeFeed · Manual de uso",
-      "revisado": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "revisado": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "secciones": [
         "30-que-es-befeed.md",
         "31-primeros-pasos-befeed.md",
@@ -76,7 +76,8 @@
         "37-metricas-y-cierre.md",
         "38-problemas-befeed.md",
         "39-operacion-befeed.md"
-      ]
+      ],
+      "benotes_page_id": "cmw2ou1i00001mz07tocpjcjx"
     }
   },
   "sources": {
@@ -201,7 +202,7 @@
       ]
     },
     "30-que-es-befeed.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/nav.tsx",
         "app/feed/page.tsx",
@@ -209,14 +210,14 @@
       ]
     },
     "31-primeros-pasos-befeed.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/cuentas",
         "lib/auth.ts"
       ]
     },
     "32-generar-la-semana.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/semana/generar",
         "lib/feed/generate.ts",
@@ -224,7 +225,7 @@
       ]
     },
     "33-piezas-y-puertas.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/pieza",
         "lib/feed/stages.ts",
@@ -232,7 +233,7 @@
       ]
     },
     "34-el-estudio.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/estudio",
         "app/feed/studio-actions.ts",
@@ -241,14 +242,14 @@
       ]
     },
     "35-el-tablero.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "lib/feed/maas2.ts",
         "lib/feed/board-sync.ts"
       ]
     },
     "36-el-agente.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "lib/feed/mcp.ts",
         "app/feed/agente",
@@ -256,7 +257,7 @@
       ]
     },
     "37-metricas-y-cierre.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/metricas",
         "app/feed/ideas",
@@ -265,7 +266,7 @@
       ]
     },
     "38-problemas-befeed.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "app/feed/estudio",
         "app/feed/semana",
@@ -273,7 +274,7 @@
       ]
     },
     "39-operacion-befeed.md": {
-      "sha": "e5bbd945a5d7086d46675e6d3ef6de06e3d17781",
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
       "paths": [
         "docker-compose.prod.yml",
         "Dockerfile",
