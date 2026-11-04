@@ -1,0 +1,100 @@
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_1a769803b93df7 1-332
+  s_3b98e1c0506fdd::t_5dfe1591039160 333-344
+app/feed/metricas/page.tsx
+  s_3b98e1c0506fdd::t_c149d7799841f2 1-91
+app/feed/marca/page.tsx
+  s_3b98e1c0506fdd::t_6e7a0daebd91d3 1-86
+app/feed/cuentas/page.tsx
+  s_3b98e1c0506fdd::t_4f2fd094e3baf0 1-71
+app/feed/estudio/page.tsx
+  s_3b98e1c0506fdd::t_37af52215e8416 1-35
+app/feed/ui.tsx
+  s_3b98e1c0506fdd::t_9fbff09f47b525 1-48
+lib/feed/ficha.ts
+  s_3b98e1c0506fdd::t_d31f3899c6ad13 1-73
+app/feed/layout.tsx
+  s_3b98e1c0506fdd::t_10817075296043 1-44
+app/feed/agente/page.tsx
+  s_3b98e1c0506fdd::t_672b3459d9dcaa 1-90
+app/feed/actions.ts
+  s_3b98e1c0506fdd::t_894ccb11a95c62 1-173
+worker/reel-runner.ts
+  s_3b98e1c0506fdd::t_591d843fdb6066 1-163
+app/feed/semana/page.tsx
+  s_3b98e1c0506fdd::t_0a1a51eba9aeea 1-68
+app/feed/studio-actions.ts
+  s_3b98e1c0506fdd::t_707661e5f67bb0 1-33
+lib/feed/insights.ts
+  s_3b98e1c0506fdd::t_b14be031a38638 1-66
+app/feed/gates.ts
+  s_3b98e1c0506fdd::t_a2872ceebf4e71 1-35
+app/feed/estudio/job.ts
+  s_3b98e1c0506fdd::t_161e318c99b206 1-18
+app/api/mcp/route.ts
+  s_3b98e1c0506fdd::t_813dd99b1294e2 1-36
+app/api/cron/feed-metrics/route.ts
+  s_3b98e1c0506fdd::t_9747f5a0d3adae 1-24
+lib/feed/stages.ts
+  s_3b98e1c0506fdd::t_c04d5011755a9a 1-81
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_2a59ab59338173 1-174
+app/feed/page.tsx
+  s_3b98e1c0506fdd::t_b4a32d5bf46479 1-123
+app/feed/ideas/page.tsx
+  s_3b98e1c0506fdd::t_f046b13625a04d 1-90
+app/feed/agente/token-form.tsx
+  s_3b98e1c0506fdd::t_00e0084f25dbe2 1-24
+app/feed/cierre/page.tsx
+  s_3b98e1c0506fdd::t_bf4098dce75e51 1-89
+app/feed/estudio/[id]/page.tsx
+  s_3b98e1c0506fdd::t_244d692581647f 1-112
+app/feed/pieza/[id]/page.tsx
+  s_3b98e1c0506fdd::t_f70571857e1f80 1-176
+app/feed/nav.tsx
+  s_3b98e1c0506fdd::t_6de7a5d52825f2 1-34
+lib/feed/service.ts
+  s_3b98e1c0506fdd::t_1eb0380057d982 1-265
+Dockerfile
+  s_3b98e1c0506fdd::t_40d5fbef2e1413 39,50-51
+app/feed/feed.css
+  s_3b98e1c0506fdd::t_36bf6d2d2a5104 1-91
+docker-compose.prod.yml
+  s_3b98e1c0506fdd::t_d8a37add695c3e 89-106,121
+lib/feed/context.ts
+  s_3b98e1c0506fdd::t_a1987a716bede3 1-24
+lib/feed/tokens.ts
+  s_3b98e1c0506fdd::t_935ee1f0305605 1-10
+lib/meta/client.ts
+  s_3b98e1c0506fdd::t_dbeff72e464100 103-106
+package.json
+  s_3b98e1c0506fdd::t_97eff27dda28f4 14
+prisma/migrations/20261104170000_add_befeed/migration.sql
+  s_3b98e1c0506fdd::t_61868208550f87 1-238
+prisma/schema.prisma
+  s_3b98e1c0506fdd::t_f4fa1f86726407 99-102,164-167,454-656
+proxy.ts
+  s_3b98e1c0506fdd::t_4e6e516ed27326 3,41
+scripts/cron.sh
+  s_3b98e1c0506fdd::t_a1624c2c41484f 42,63-68
+tools/publish_r2.py
+  s_3b98e1c0506fdd::t_ab9b8224f1b634 1-110
+tools/reel.py
+  s_3b98e1c0506fdd::t_832e6198110a22 1-274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "339f740ca50e70b3c79f7f2dc84491ecd47896a5",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
