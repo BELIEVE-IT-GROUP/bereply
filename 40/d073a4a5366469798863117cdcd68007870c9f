@@ -1,0 +1,33 @@
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_548f006f6a1834 2,175-190
+app/feed/actions.ts
+  s_3b98e1c0506fdd::t_a9dea454690661 10,63-67
+app/feed/agente/page.tsx
+  s_3b98e1c0506fdd::t_2a8cc0c87ac9db 19
+app/feed/agente/token-form.tsx
+  s_3b98e1c0506fdd::t_aa0692b4ae0102 19
+app/feed/pieza/[id]/page.tsx
+  s_3b98e1c0506fdd::t_c2c997223c7933 7,162-171
+lib/feed/ficha.ts
+  s_3b98e1c0506fdd::t_6f46668ded5435 24-33
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_f498aa87d7e1c6 14,261-268,308
+lib/feed/service.ts
+  s_3b98e1c0506fdd::t_b6ceeaa1f849aa 9,118-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40d073a4a5366469798863117cdcd68007870c9f",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
