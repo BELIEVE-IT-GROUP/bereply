@@ -7,7 +7,8 @@ El manual se escribe una sola vez, en `docs/manual/secciones/` del repo, y de ah
 | Repo | `docs/manual/` en `BELIEVE-IT-GROUP/bereply` |
 | R2, usuario | `https://files.believe-global.com/bereply/manual/usuario/index.html` |
 | R2, operación | `https://files.believe-global.com/bereply/manual/operacion/index.html` |
-| BeNotes | Cuaderno BELIEVE: "BeReply · Manual de usuario" y "BeReply · Manual de operación" |
+| R2, befeed | `https://files.believe-global.com/bereply/manual/befeed/index.html` |
+| BeNotes | Cuaderno BELIEVE: "BeReply · Manual de usuario", "BeReply · Manual de operación" y el de BeFeed |
 
 ## Se actualiza solo
 
@@ -28,4 +29,4 @@ scripts/publish-manual.sh --publish
 node scripts/manual/autoupdate.mjs
 ```
 
-En orden: construir, ensayar la publicación, publicar, y ver qué secciones están desactualizadas sin gastar tokens. Detalle completo en `docs/manual/README.md`.
+En orden: construir, ensayar la publicación, publicar, y ver qué secciones están desactualizadas sin gastar tokens. Sin argumentos, `scripts/publish-manual.sh` trabaja sobre usuario, operación y befeed. Detalle completo en `docs/manual/README.md`.

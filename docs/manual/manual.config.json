@@ -22,7 +22,7 @@
       "subtitle": "Cómo responder comentarios y mensajes de Instagram con BeReply: cuentas, campañas, conocimiento de marca desde Maasy, IA, flujos y resultados.",
       "benotes_title": "BeReply · Manual de usuario",
       "benotes_page_id": "cmvvyfqpt000drh06vymmchlf",
-      "revisado": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "revisado": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "portada": {
         "imagen": "../img/panel.jpg",
         "alt": "El dashboard de BeReply con la actividad de las cuentas conectadas"
@@ -45,7 +45,7 @@
       "subtitle": "Todo el manual de usuario más cómo Believe administra BeReply: la app de Meta, el servidor, los trabajos diarios, las integraciones y este manual.",
       "benotes_title": "BeReply · Manual de operación",
       "benotes_page_id": "cmvvygj3f000hrh06eiqhrklx",
-      "revisado": "ffa3b10159f98cb964376c1a7fb57b5fc2cd28f4",
+      "revisado": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "portada": {
         "imagen": "../img/ajustes.jpg",
         "alt": "Settings de BeReply con las cuentas conectadas"
@@ -83,7 +83,7 @@
   },
   "sources": {
     "01-que-es.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "README.md",
         "app/(dashboard)/dashboard",
@@ -91,7 +91,7 @@
       ]
     },
     "02-primeros-pasos.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/(dashboard)/settings/page.tsx",
         "app/api/instagram",
@@ -100,7 +100,7 @@
       ]
     },
     "03-campanas.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "components/campaign-builder.tsx",
         "app/(dashboard)/campaigns",
@@ -109,7 +109,7 @@
       ]
     },
     "04-conocimiento-de-marca.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/(dashboard)/settings/page.tsx",
         "app/api/settings/knowledge",
@@ -119,7 +119,7 @@
       ]
     },
     "05-respuestas-con-ia.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/ai/responder.ts",
         "components/campaign-ai-settings.tsx",
@@ -127,7 +127,7 @@
       ]
     },
     "06-flujos.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "components/flow-builder",
         "lib/flow",
@@ -135,7 +135,7 @@
       ]
     },
     "07-contactos-bandeja-resultados.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/(dashboard)/dashboard",
         "app/(dashboard)/overview",
@@ -148,7 +148,7 @@
       ]
     },
     "08-equipo-y-cuentas.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/workspace.ts",
         "lib/workspace-access.ts",
@@ -157,7 +157,7 @@
       ]
     },
     "09-problemas-frecuentes.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/(dashboard)/diagnostics",
         "lib/queue/dm-worker.ts",
@@ -165,7 +165,7 @@
       ]
     },
     "20-meta.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "META_APP_REVIEW.md",
         "docs/setup.md",
@@ -174,7 +174,7 @@
       ]
     },
     "21-infraestructura.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "docker-compose.prod.yml",
         "Dockerfile",
@@ -185,7 +185,7 @@
       ]
     },
     "22-integraciones.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/maasy",
         "lib/ai",
@@ -195,7 +195,7 @@
       ]
     },
     "23-este-manual.md": {
-      "sha": "7b347ebfdd8df514a0b3e5c6b0f3fb77ca9c08d4",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "scripts/manual",
         "scripts/publish-manual.sh",
@@ -203,7 +203,7 @@
       ]
     },
     "30-que-es-befeed.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/nav.tsx",
         "app/feed/page.tsx",
@@ -211,14 +211,14 @@
       ]
     },
     "31-primeros-pasos-befeed.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/cuentas",
         "lib/auth.ts"
       ]
     },
     "32-generar-la-semana.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/semana/generar",
         "lib/feed/generate.ts",
@@ -226,7 +226,7 @@
       ]
     },
     "33-piezas-y-puertas.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/pieza",
         "lib/feed/stages.ts",
@@ -234,7 +234,7 @@
       ]
     },
     "34-el-estudio.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/estudio",
         "app/feed/studio-actions.ts",
@@ -243,14 +243,14 @@
       ]
     },
     "35-el-tablero.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/feed/maas2.ts",
         "lib/feed/board-sync.ts"
       ]
     },
     "36-el-agente.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/feed/mcp.ts",
         "app/feed/agente",
@@ -258,7 +258,7 @@
       ]
     },
     "37-metricas-y-cierre.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/metricas",
         "app/feed/ideas",
@@ -267,7 +267,7 @@
       ]
     },
     "38-problemas-befeed.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "app/feed/estudio",
         "app/feed/semana",
@@ -275,7 +275,7 @@
       ]
     },
     "39-operacion-befeed.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "docker-compose.prod.yml",
         "Dockerfile",
@@ -285,7 +285,7 @@
       ]
     },
     "40-pauta.md": {
-      "sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+      "sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
       "paths": [
         "lib/feed/anuncio.ts",
         "lib/feed/beads.ts",

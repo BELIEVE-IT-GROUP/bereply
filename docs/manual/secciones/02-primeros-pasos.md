@@ -4,7 +4,7 @@
 
 1. Abre `https://reply.believe-global.com`.
 2. Escribe tu correo. Te llega un link de acceso: ábrelo en el mismo navegador.
-3. Solo entran los correos autorizados. Si el tuyo no está, pídele a un administrador que te invite desde **Settings → Team**.
+3. Entran los correos que ya pertenecen a un espacio de trabajo y los de invitaciones pendientes que no hayan vencido. Si el tuyo no cumple ninguna de las dos condiciones, no llega el link: pídele a un administrador que te invite desde **Settings → Team**. La invitación desde el panel es suficiente, sin configuración adicional. Usa ese mismo correo y abre el link antes de que la invitación venza.
 
 ## Conectar una cuenta de Instagram
 
@@ -12,7 +12,7 @@ La cuenta tiene que ser **profesional** (Empresa o Creador), no personal. Antes 
 
 1. **Acepta la invitación de Meta.** En un navegador, no en la app de Instagram, entra con la cuenta de la marca a `https://www.instagram.com/accounts/manage_access/`. Ve a la pestaña **Invitaciones de evaluador** (o *Tester invites*) y acepta **BeReply**. La app de Instagram no muestra esa pestaña; desde el celular sirve Safari o Chrome.
 2. **Conéctala en BeReply.** En el mismo navegador donde Instagram tiene abierta la cuenta de la marca, entra a **Settings → Connect another account** y autoriza. Si Instagram te muestra otra cuenta, cambia antes de aceptar.
-3. **Comprueba.** En **Settings** la cuenta aparece con la fecha de vencimiento del token y "Webhook ready".
+3. **Comprueba.** En **Settings** la cuenta aparece con la fecha de vencimiento del token y "Webhook ready". Solo se listan las cuentas que completaron la conexión: si después de autorizar no la ves, repite el paso 2.
 
 ![Settings con tres cuentas conectadas y su estado](../img/ajustes.jpg)
 

@@ -4,12 +4,13 @@ BeReply es un fork de OpenReply (MIT) en `github.com/BELIEVE-IT-GROUP/bereply`. 
 
 ## Qué corre
 
-`/root/openreply` es un checkout git del repo en `main`. `docker-compose.prod.yml` levanta cinco contenedores:
+`/root/openreply` es un checkout git del repo en `main`. `docker-compose.prod.yml` levanta seis contenedores:
 
 | Contenedor | Qué hace |
 |---|---|
 | `openreply-web` | Next.js: el panel y el endpoint que recibe los webhooks de Meta. Detrás de Traefik en `reply.believe-global.com` |
 | `openreply-worker` | BullMQ: **es el que manda los DMs**, con reintentos y límite por cuenta |
+| `openreply-reels` | BeFeed: produce los Reels (voz, cuadros, clips y armado). Guarda el trabajo en el volumen `openreply-reels` para no repetir lo ya generado |
 | `openreply-cron` | `scripts/cron.sh`: los trabajos periódicos (ver abajo) |
 | `openreply-postgres` | La base |
 | `openreply-redis` | La cola |
@@ -21,12 +22,12 @@ Al arrancar, `openreply-web` aplica las migraciones pendientes (`npm run db:migr
 ```
 ssh contabo-believe
 cd /root/openreply && git pull
-nohup docker compose -f docker-compose.prod.yml up -d --build openreply-web openreply-worker openreply-cron > /root/openreply-deploy.log 2>&1 &
+nohup docker compose -f docker-compose.prod.yml up -d --build openreply-web openreply-worker openreply-reels openreply-cron > /root/openreply-deploy.log 2>&1 &
 ```
 
 Con `nohup` el build no depende de que la sesión SSH siga viva. Cuando el box está cargado, tarda de 10 a 15 minutos. Después:
 
-- `docker ps | grep openreply-`: los cinco arriba y `openreply-web` en *healthy*.
+- `docker ps | grep openreply-`: los seis arriba y `openreply-web` en *healthy*.
 - `docker exec openreply-web wget -qO- http://127.0.0.1:3000/api/health`: base, Redis, cola y latido del worker en `ok`.
 
 > Para reiniciar sin reconstruir: `up -d --force-recreate`. `docker compose restart` no vuelve a leer el `.env`.
@@ -36,6 +37,7 @@ Con `nohup` el build no depende de que la sesión SSH siga viva. Cuando el box e
 | Trabajo | Cuándo | Para qué |
 |---|---|---|
 | `attach-next-reel` | Cada 5 minutos | Amarra las campañas "next post or reel" al reel que se acaba de publicar |
+| `feed-metrics` | Cada hora, al minuto 07 | Refresca las métricas de las publicaciones que usa BeFeed. Cambian despacio y cada refresco cuesta una llamada a Meta por publicación |
 | `refresh-tokens` | 05:00 UTC | Renueva los tokens de Instagram. Si se salta, el token vence y todo deja de enviar sin error |
 | `snapshot-followers` | 05:00 UTC | La foto diaria de seguidores |
 | `sync-maasy` | 05:00 UTC | Vuelve a traer de Maasy el conocimiento de las cuentas vinculadas |

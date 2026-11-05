@@ -23,7 +23,7 @@ Maasy es la fuente de verdad del ADN de cada marca de Believe. Al vincular una c
 2. Lo resume en una ficha para DM de hasta 12.000 caracteres: qué vende, precios, condiciones, preguntas frecuentes, cliente ideal y voz. Deja fuera la estrategia y el análisis de competencia.
 3. La guarda como el conocimiento de esa cuenta y muestra cuándo se sincronizó.
 
-Para vincular: elige la cuenta y luego **Maasy: \<marca\>** en el segundo selector. **Sync now** vuelve a traerla cuando quieras.
+Para vincular: elige la cuenta y luego **Maasy: \<marca\>** en el segundo selector. **Sync now** vuelve a traerla cuando quieras. Solo aparecen las cuentas con Instagram conectado; si no ves una, revisa su conexión.
 
 > BeReply vuelve a sincronizar todas las cuentas vinculadas una vez al día, a las 05:00 UTC. Si algo de la marca cambia, cámbialo en Maasy: al día siguiente ya está en BeReply. Lo que edites a mano en una cuenta vinculada se reemplaza en esa sincronización.
 
