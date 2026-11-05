@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { winners, worstHook } from "@/lib/feed/insights";
+import { adWinnersOf } from "@/lib/feed/resultados";
 import { currentWeek, recentReels } from "@/lib/feed/service";
 import { addReferenceAction, pieceFromWinnerAction, removeReferenceAction } from "../actions";
 import { firstLine, Head, NoAccount, pct, secs } from "../ui";
@@ -8,10 +9,11 @@ import { firstLine, Head, NoAccount, pct, secs } from "../ui";
 export default async function IdeasPage() {
   const { account } = await feedContext();
   if (!account) return <NoAccount />;
-  const [reels, week, referencias] = await Promise.all([
+  const [reels, week, referencias, ganadoresPauta] = await Promise.all([
     recentReels(account.id),
     currentWeek(account.id),
     prisma.feedReference.findMany({ where: { instagramAccountId: account.id }, orderBy: { createdAt: "asc" } }),
+    adWinnersOf(account.id),
   ]);
   const top = winners(reels);
   const peor = worstHook(reels);
@@ -29,6 +31,21 @@ export default async function IdeasPage() {
       <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username} · Ganadores propios y cuentas de referencia`}>
         Primero repite lo que <i>ya te funcionó</i>
       </Head>
+
+      {ganadoresPauta.length > 0 ? (
+        <section className="plano">
+          <h2 className="s">Lo que ganó en pauta</h2>
+          <p className="sub" style={{ fontSize: 13 }}>Cuesta menos del 70 % de la mediana de la marca, con al menos 10 resultados. Lo mide BeAds. El generador de semana también lo lee.</p>
+          <div className="lista">
+            {ganadoresPauta.map((r) => (
+              <div key={r.anuncioId}>
+                <span style={{ flex: "1 1 280px" }}><b style={{ fontWeight: 500 }}>{r.titulo}</b><br /><span className="mute">{r.resultados} resultados a {Math.round(r.costoPorResultado as number).toLocaleString("es-CO")} {r.moneda} cada uno</span></span>
+                {crear(r.titulo)}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="plano">
         <h2 className="s">Tus ganadores</h2>

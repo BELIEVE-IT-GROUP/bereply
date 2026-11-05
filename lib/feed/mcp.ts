@@ -156,13 +156,25 @@ export const TOOLS = {
       formato: z.enum(["REEL", "CARRUSEL", "HISTORIAS", "POST"]),
       dia: z.string().regex(fechaRe),
       anuncio: anuncioSchema,
+      pedido: z.string().nullish().describe("La clave del pedido de BeAds que esta pieza atiende, si aplica."),
       guion: z.array(z.object({ time: z.string(), voice: z.string(), screen: z.string() })).optional(),
     }),
-    run: async (i: { cuenta: string; titulo: string; formato: "REEL" | "CARRUSEL" | "HISTORIAS" | "POST"; dia: string; anuncio: unknown; guion?: Array<{ time: string; voice: string; screen: string }> }, { workspaceId, actor }: Ctx) => {
+    run: async (i: { cuenta: string; titulo: string; formato: "REEL" | "CARRUSEL" | "HISTORIAS" | "POST"; dia: string; anuncio: unknown; pedido?: string | null; guion?: Array<{ time: string; voice: string; screen: string }> }, { workspaceId, actor }: Ctx) => {
       const account = await accountByUsername(workspaceId, i.cuenta);
-      const piece = await createAdPiece(workspaceId, account.id, { title: i.titulo, format: i.formato, day: i.dia, needsVideo: i.formato === "REEL", ad: i.anuncio, script: i.guion }, actor);
+      const piece = await createAdPiece(workspaceId, account.id, { title: i.titulo, format: i.formato, day: i.dia, needsVideo: i.formato === "REEL", ad: i.anuncio, adRequestKey: i.pedido, script: i.guion }, actor);
       return { pieza_id: piece.id };
     },
+  },
+  pedidos: {
+    description: "Los pedidos de piezas de BeAds que siguen abiertos en este espacio, para crear sus piezas.",
+    input: z.object({}),
+    run: async (_: object, { workspaceId }: Ctx) =>
+      prisma.feedAdRequest.findMany({
+        where: { workspaceId, cerrado: null },
+        select: { clave: true, motivo: true, brief: true, objetivo: true, formatos: true, versiones: true, para: true, instagramAccount: { select: { username: true } } },
+        orderBy: { createdAt: "asc" },
+        take: 50,
+      }),
   },
   guardar_anuncio: {
     description: "Reescribe el anuncio de una pieza de pauta que siga en guion.",

@@ -180,6 +180,7 @@ function adMetadata(piece: FeedPiece, archivos: string[]) {
     canal: "meta",
     ...ad,
     formatos,
+    ...(piece.adRequestKey ? { pedido: piece.adRequestKey } : {}),
     huella_version: 1,
     huella: huella({ ...ad, formatos }, adDescription(ad), archivos),
   };

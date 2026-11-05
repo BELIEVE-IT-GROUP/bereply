@@ -232,7 +232,7 @@ export async function weekForDay(workspaceId: string, instagramAccountId: string
 export async function createAdPiece(
   workspaceId: string,
   instagramAccountId: string,
-  input: { title: string; format: FeedFormat; day: string; needsVideo: boolean; ad: unknown; script?: Array<{ time: string; voice: string; screen: string }> },
+  input: { title: string; format: FeedFormat; day: string; needsVideo: boolean; ad: unknown; adRequestKey?: string | null; script?: Array<{ time: string; voice: string; screen: string }> },
   actor: Actor
 ) {
   const ad = parseAd(input.ad);
@@ -249,6 +249,7 @@ export async function createAdPiece(
       linterClean: true,
       destination: "AD",
       ad,
+      adRequestKey: input.adRequestKey ?? null,
       script: (input.script ?? []) as Prisma.InputJsonValue,
       measures: "Costo por resultado, en BeAds",
     },

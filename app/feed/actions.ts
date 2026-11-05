@@ -24,6 +24,7 @@ import {
   useForAds,
 } from "@/lib/feed/service";
 import { vigenciaFrom } from "@/lib/feed/anuncio";
+import { closeRequest } from "@/lib/feed/pedidos";
 import { listTeam } from "@/lib/feed/maas2";
 import { GATES, GateError, type Gate } from "@/lib/feed/stages";
 import { hashAgentToken, newAgentToken } from "@/lib/feed/tokens";
@@ -291,13 +292,15 @@ export async function createAdPieceAction(form: FormData) {
   const { workspaceId, actor, account } = await feedContext();
   if (!account) return;
   const format = (text(form, "format") ?? "REEL") as "REEL" | "POST" | "CARRUSEL" | "HISTORIAS";
+  const pedidoId = text(form, "pedido");
+  const pedido = pedidoId ? await prisma.feedAdRequest.findFirst({ where: { id: pedidoId, workspaceId } }) : null;
   let id = "";
   let error = "";
   try {
     const piece = await createAdPiece(
       workspaceId,
-      account.id,
-      { title: text(form, "title") ?? "", format, day: text(form, "dia") ?? "", needsVideo: format === "REEL", ad: adFrom(form) },
+      pedido?.instagramAccountId ?? account.id,
+      { title: text(form, "title") ?? "", format, day: text(form, "dia") ?? "", needsVideo: format === "REEL", ad: adFrom(form), adRequestKey: pedido?.clave },
       actor
     );
     id = piece.id;
@@ -326,4 +329,17 @@ export async function createBrandAction(form: FormData) {
   await logEvent(workspaceId, actor, "crear_marca_sin_instagram", { detail: name });
   (await cookies()).set(ACCOUNT_COOKIE, account.id, { httpOnly: true, sameSite: "lax", path: "/feed", maxAge: 60 * 60 * 24 * 365 });
   revalidatePath("/feed", "layout");
+}
+
+export async function rejectRequestAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  let error = "";
+  try {
+    await closeRequest(workspaceId, text(form, "id") ?? "", "RECHAZADO", text(form, "motivo"), actor);
+  } catch (e) {
+    if (!(e instanceof GateError)) throw e;
+    error = e.message;
+  }
+  revalidatePath("/feed");
+  if (error) redirect(`/feed?error=${encodeURIComponent(error)}`);
 }

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { adDescription, formatosFor, huella, sameText, anuncioSchema } from "@/lib/feed/anuncio";
 import { validarEnBeads } from "@/lib/feed/beads";
+import { authorizedKey, pedidoSchema, requestState } from "@/lib/feed/pedidos";
+import { adWinners } from "@/lib/feed/resultados";
 import { adTextChanged, decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
 import { planFromScript, withScreenText } from "@/lib/feed/draft-ficha";
 import { textsToLint, unsourcedFigures } from "@/lib/feed/generate";
@@ -458,5 +460,43 @@ describe("validación con BeAds", () => {
     expect((await validarEnBeads("p", ad)).estado).toBe("pendiente");
     vi.stubEnv("BEADS_BEFEED_KEY", "");
     expect((await validarEnBeads("p", ad)).estado).toBe("configuracion");
+  });
+});
+
+describe("pedidos de BeAds", () => {
+  const pieza = (extra: Partial<PieceGateState>): PieceGateState => ({ ...guion, destination: "AD", needsVideo: false, ...extra });
+  it("el estado sale de sus piezas", () => {
+    expect(requestState(null, [])).toBe("RECIBIDO");
+    expect(requestState("RECHAZADO", [pieza({})])).toBe("RECHAZADO");
+    expect(requestState(null, [pieza({})])).toBe("EN_PRODUCCION");
+    expect(requestState(null, [pieza({ stage: "CLIENTE", gatesPassed: ["DANIELA"] })])).toBe("EN_CLIENTE");
+    expect(requestState(null, [pieza({ stage: "LISTA", gatesPassed: ["DANIELA", "CLIENTE"] })])).toBe("LISTO");
+    expect(requestState(null, [pieza({ stage: "LISTA", gatesPassed: ["DANIELA", "CLIENTE"] }), pieza({})])).toBe("EN_CLIENTE");
+  });
+  it("solo acepta la llave exacta, y sin llave configurada a nadie", () => {
+    expect(authorizedKey("abc", "abc")).toBe(true);
+    expect(authorizedKey("abd", "abc")).toBe(false);
+    expect(authorizedKey(null, "abc")).toBe(false);
+    expect(authorizedKey("abc", undefined)).toBe(false);
+  });
+  it("solo acepta Meta por ahora", () => {
+    const base = { clave: "fatiga:1:2026-W46", canal: "meta", maas2_proyecto_id: "5d3c564e-7878-4773-91b1-12c4623101e4", motivo: "fatiga", brief: "Otra apertura", pedido_por: "ads-manager" };
+    expect(pedidoSchema.safeParse(base).success).toBe(true);
+    expect(pedidoSchema.safeParse({ ...base, canal: "tiktok" }).success).toBe(false);
+  });
+});
+
+describe("ganadores en pauta", () => {
+  const fila = (id: string, costo: number | null, resultados = 20, moneda = "COP") => ({ maasAssetId: id, moneda, resultados, gasto: 1, costoPorResultado: costo });
+  it("gana quien cuesta menos del 70 % de la mediana", () => {
+    expect(adWinners([fila("a", 500), fila("b", 1000), fila("c", 1100)]).map((r) => r.maasAssetId)).toEqual(["a"]);
+  });
+  it("sin datos suficientes no hay ganador", () => {
+    expect(adWinners([fila("a", 100), fila("b", 1000)])).toEqual([]);
+    expect(adWinners([fila("a", 100, 5), fila("b", 1000), fila("c", 1100)])).toEqual([]);
+    expect(adWinners([fila("a", null), fila("b", 1000), fila("c", 1100)])).toEqual([]);
+  });
+  it("no compara entre monedas", () => {
+    expect(adWinners([fila("a", 5, 20, "USD"), fila("b", 1000), fila("c", 1100), fila("d", 1200)])).toEqual([]);
   });
 });

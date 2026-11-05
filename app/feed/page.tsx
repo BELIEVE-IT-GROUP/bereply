@@ -4,6 +4,8 @@ import { feedContext } from "@/lib/feed/context";
 import { summarize } from "@/lib/feed/insights";
 import { currentWeek, gateState, recentReels, stageFor } from "@/lib/feed/service";
 import { nextGate } from "@/lib/feed/stages";
+import { requestState } from "@/lib/feed/pedidos";
+import { rejectRequestAction } from "./actions";
 import { GATE_LABEL } from "./gates";
 import { day, Head, moment, NoAccount, pct, secs } from "./ui";
 
@@ -36,7 +38,17 @@ export default async function HoyPage() {
     })
   );
 
-  const total = frenadas.length + puertas.length;
+  const pedidos = await prisma.feedAdRequest.findMany({
+    where: { workspaceId, cerrado: null },
+    include: { instagramAccount: { select: { username: true } } },
+    orderBy: { createdAt: "asc" },
+    take: 30,
+  });
+  const conPieza = new Set(
+    (await prisma.feedPiece.findMany({ where: { adRequestKey: { in: pedidos.map((p) => p.clave) } }, select: { adRequestKey: true } })).map((p) => p.adRequestKey)
+  );
+  const nuevos = pedidos.filter((p) => requestState(p.cerrado, []) === "RECIBIDO" && !conPieza.has(p.clave));
+  const total = frenadas.length + puertas.length + nuevos.length;
   return (
     <>
       <Head
@@ -47,6 +59,29 @@ export default async function HoyPage() {
       </Head>
 
       {accounts.length === 0 ? <NoAccount /> : null}
+
+      {nuevos.length > 0 ? (
+        <section className="plano">
+          <h2 className="s">Pedidos de BeAds</h2>
+          <div className="lista">
+            {nuevos.map((p) => (
+              <div key={p.id}>
+                <span style={{ flex: "1 1 280px" }}>
+                  <b style={{ fontWeight: 500 }}>{p.brief}</b>
+                  <br />
+                  <span className="mute">@{p.instagramAccount.username} · {p.motivo} · {p.versiones} {p.versiones === 1 ? "versión" : "versiones"}{p.para ? ` · Para el ${day(p.para)}` : ""}</span>
+                </span>
+                <Link className="btn pri" href={`/feed/pieza/nueva?pedido=${p.id}`}>Crear pieza</Link>
+                <form action={rejectRequestAction} className="fila" style={{ gap: 6 }}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <input className="input" name="motivo" required placeholder="Por qué no" aria-label="Por qué se rechaza" />
+                  <button className="btn" type="submit">Rechazar</button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="dos">
         <section className="plano">

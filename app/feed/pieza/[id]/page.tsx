@@ -54,6 +54,7 @@ export default async function PiezaPage({
           take: 10,
         })
       : [];
+  const resultados = piece.maasAssetId ? await prisma.feedAdResult.findMany({ where: { maasAssetId: piece.maasAssetId } }) : [];
   const equipo = await listTeam().catch(() => []);
   const hidden = <input type="hidden" name="pieceId" value={piece.id} />;
 
@@ -130,6 +131,29 @@ export default async function PiezaPage({
           {piece.caption ? <div className="plano"><h2 className="s">Caption</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.caption}</p></div> : null}
           {piece.stories ? <div className="plano"><h2 className="s">Historias</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.stories}</p></div> : null}
           {script.length === 0 && !piece.caption && !ad ? <p className="aviso">Esta pieza aún no tiene texto. Pídeselo al agente con <span className="mono">guardar_pieza</span>.</p> : null}
+          {resultados.length > 0 ? (
+            <div className="plano">
+              <h2 className="s">Lo que rindió en pauta</h2>
+              <div className="caja">
+                <table className="tb">
+                  <thead><tr><th>Campaña</th><th>Estado</th><th>Gasto</th><th>Resultados</th><th>Costo</th><th>Frecuencia</th><th>Último dato</th></tr></thead>
+                  <tbody>
+                    {resultados.map((r) => (
+                      <tr key={r.anuncioId}>
+                        <td>{r.campana ?? r.anuncioId}{r.fatiga ? <> <span className="tag freno">Fatiga</span></> : null}</td>
+                        <td className="n">{r.estado ?? "—"}</td>
+                        <td className="n">{r.gasto.toLocaleString("es-CO")} {r.moneda}</td>
+                        <td className="n">{r.resultados.toLocaleString("es-CO")}</td>
+                        <td className="n">{r.costoPorResultado == null ? "—" : `${Math.round(r.costoPorResultado).toLocaleString("es-CO")} ${r.moneda}`}</td>
+                        <td className="n">{r.frecuencia ?? "—"}</td>
+                        <td className="n">{r.ultimoDato ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
           {piece.comments.length > 0 ? (
             <div className="plano" style={{ gap: 2 }}>
               <h2 className="s" style={{ marginBottom: 6 }}>Comentarios del tablero</h2>

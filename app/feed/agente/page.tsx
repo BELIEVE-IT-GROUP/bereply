@@ -23,6 +23,7 @@ const PERMISO: Record<string, { label: string; className: string }> = {
   metodo: { label: "Solo lee", className: "tag" },
   crear_pieza_de_pauta: { label: "Escribe borrador", className: "tag ok" },
   guardar_anuncio: { label: "Escribe borrador", className: "tag ok" },
+  pedidos: { label: "Solo lee", className: "tag" },
 };
 
 export default async function AgentePage() {

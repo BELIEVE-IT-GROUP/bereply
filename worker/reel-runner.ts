@@ -15,6 +15,7 @@ import { prisma } from "@/lib/db/client";
 import { syncBoards } from "@/lib/feed/board-sync";
 import { generateWeek } from "@/lib/feed/generate";
 import { logEvent, pushQuietly } from "@/lib/feed/service";
+import { syncAdResults } from "@/lib/feed/resultados";
 import { reelScript } from "@/lib/feed/skills";
 import type { Actor } from "@/lib/feed/stages";
 
@@ -179,6 +180,7 @@ async function loop(name: string, fn: () => Promise<unknown>, restMs: number) {
 async function main() {
   await mkdir(DATA, { recursive: true });
   void loop("tableros", syncBoards, EVERY_5_MIN);
+  void loop("resultados", syncAdResults, 12 * EVERY_5_MIN);
   await prisma.feedWeekRequest.updateMany({ where: { status: "CORRIENDO" }, data: { status: "FALLO", log: "Se interrumpió por un reinicio." } });
   void loop("semana", tickWeek, POLL_MS);
   // Un trabajo que quedó corriendo cuando se reinició el proceso no va a terminar solo.

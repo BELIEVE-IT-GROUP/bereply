@@ -162,6 +162,8 @@ model InstagramAccount {
   followerSnapshots FollowerSnapshot[]
   contacts    Contact[]
   feedWeeks   FeedWeek[]
+  feedAdRequests FeedAdRequest[]
+  feedAdResults FeedAdResult[]
   feedMetrics FeedMediaMetric[]
   feedProfile FeedBrandProfile?
   feedReferences FeedReference[]
@@ -542,6 +544,8 @@ model FeedPiece {
   ad               Json?
   /// Lo que respondió BeAds al validar el texto: ok, bloqueada o pendiente.
   adCheck          Json?
+  /// La clave del pedido de BeAds que originó esta pieza.
+  adRequestKey     String?
   /// Quién hace la pieza: ESTUDIO o DISENO.
   producedBy       String?
   assigneeId       String?
@@ -559,6 +563,7 @@ model FeedPiece {
   comments FeedPieceComment[]
 
   @@index([weekId, position])
+  @@index([adRequestKey])
 }
 
 /// Registro de todo lo que pasó: personas y agentes, aprobaciones y herramientas.
@@ -717,4 +722,55 @@ model FeedSkillVersion {
   version  String
   sha      String
   syncedAt DateTime @default(now())
+}
+
+/// Un pedido de piezas de BeAds. El estado se deriva de sus piezas; cerrado solo guarda RECHAZADO o CANCELADO.
+model FeedAdRequest {
+  id                 String   @id @default(cuid())
+  clave              String   @unique
+  workspaceId        String
+  instagramAccountId String
+  canal              String
+  motivo             String
+  campanaId          String?
+  conjuntoId         String?
+  objetivo           String?
+  brief              String
+  formatos           String[] @default([])
+  versiones          Int      @default(1)
+  para               DateTime?
+  pedidoPor          String
+  cerrado            String?
+  motivoRechazo      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+}
+
+/// Lo que rindió cada anuncio, leído de BeAds. BeAds mide; aquí no se recalcula.
+model FeedAdResult {
+  anuncioId          String   @id
+  instagramAccountId String
+  maasAssetId        String
+  befeedPieceId      String?
+  campana            String?
+  formato            String?
+  estado             String?
+  moneda             String
+  gasto              Float    @default(0)
+  impresiones        Int      @default(0)
+  resultados         Int      @default(0)
+  costoPorResultado  Float?
+  frecuencia         Float?
+  fatiga             Boolean  @default(false)
+  ultimoDato         String?
+  syncedAt           DateTime
+
+  instagramAccount InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@index([instagramAccountId])
+  @@index([maasAssetId])
 }

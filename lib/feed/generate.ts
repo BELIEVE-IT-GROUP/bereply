@@ -14,6 +14,7 @@ import { getClient } from "@/lib/ai/responder";
 import { prisma } from "@/lib/db/client";
 import { winners } from "./insights";
 import { projectName } from "./maas2";
+import { adWinnersOf } from "./resultados";
 import { createWeek, logEvent, recentReels, savePiece } from "./service";
 import { skillPath } from "./skills";
 import type { Actor } from "./stages";
@@ -143,6 +144,8 @@ export async function generateWeek(requestId: string) {
     const reels = await recentReels(account.id);
     const ganadores = winners(reels).map((r) => `${r.multiple}× ${r.caption?.split("\n")[0].slice(0, 100)} (${r.skipRate ?? "?"} % de salto)`);
 
+    const ganadoresPauta = (await adWinnersOf(account.id)).map((r) => `${r.titulo}: ${r.resultados} resultados a ${r.costoPorResultado} ${r.moneda} cada uno`);
+
     const desde = req.startsOn.toISOString().slice(0, 10);
     const hasta = req.endsOn.toISOString().slice(0, 10);
     const system = `Eres el estratega de Instagram orgánico de Believe. Sigue este método.\n\n${metodo}\n\n${oficio}\n\n${piezas}\n\n${FORMATO_JSON}`;
@@ -155,6 +158,7 @@ export async function generateWeek(requestId: string) {
       `Estrategia:\n${estrategia}`,
       cierre ? `Cierre anterior. Se repite: ${cierre.repeat ?? "-"}. Se suelta: ${cierre.drop ?? "-"}. Pendiente: ${cierre.pending ?? "-"}.` : "No hay cierre anterior.",
       ganadores.length ? `Ganadores recientes de la cuenta:\n${ganadores.join("\n")}` : "",
+      ganadoresPauta.length ? `Ángulos que ganaron en pauta, medidos por BeAds. Úsalos como fórmula, sin copiar el texto:\n${ganadoresPauta.join("\n")}` : "",
     ].filter(Boolean).join("\n\n");
 
     let plan = await askModel(system, user);
