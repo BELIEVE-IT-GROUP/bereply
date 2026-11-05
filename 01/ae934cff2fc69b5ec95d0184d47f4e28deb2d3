@@ -1,0 +1,29 @@
+docs/manual/befeed/CHANGELOG.md
+  s_1d3e5cad123128::t_a20cb6a1ecc8b2 5-8
+docs/manual/befeed/MANUAL-VERSION
+  s_1d3e5cad123128::t_be77ba508d689c 1
+docs/manual/manual.config.json
+  s_1d3e5cad123128::t_b6064f2366e2e9 67,206,214,221,229,237,246,253,261,270,278,288,295-297
+docs/manual/secciones/36-el-agente.md
+  s_1d3e5cad123128::t_1da7cb93563e1a 30-33
+docs/manual/secciones/39-operacion-befeed.md
+  s_1d3e5cad123128::t_f8d3d941e4e074 23-26,29,39
+docs/manual/secciones/40-pauta.md
+  s_1d3e5cad123128::t_0638237a7b8f85 43-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "01ae934cff2fc69b5ec95d0184d47f4e28deb2d3",
+  "prompts": {},
+  "sessions": {
+    "s_1d3e5cad123128": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab64b5e2-efb2-41a3-8bb5-4ab9f35108b1",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
