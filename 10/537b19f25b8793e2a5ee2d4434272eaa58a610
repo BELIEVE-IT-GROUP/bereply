@@ -1,0 +1,23 @@
+docs/manual/befeed/CHANGELOG.md
+  s_1d3e5cad123128::t_391e93851613de 5-8
+docs/manual/befeed/MANUAL-VERSION
+  s_1d3e5cad123128::t_b09b8e5beb2ce6 1
+docs/manual/manual.config.json
+  s_1d3e5cad123128::t_510c70cd3ee4a5 67,206,214,221,229,237,246,253,261,270,278,288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "10537b19f25b8793e2a5ee2d4434272eaa58a610",
+  "prompts": {},
+  "sessions": {
+    "s_1d3e5cad123128": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab64b5e2-efb2-41a3-8bb5-4ab9f35108b1",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
