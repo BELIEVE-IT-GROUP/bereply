@@ -80,8 +80,6 @@ For each shot return "cuadro" (a still image prompt) and "movimiento" (how that 
 Rules:
 - English, one or two concrete sentences each.
 - Never ask for text, letters, numbers, logos, signs or watermarks in the image: text is added later in code.
-- Objects, atmosphere and generic people only. Never depict a real venue, a real customer or a testimonial.
-- No identifiable brands, trailers or movie characters.
 Also return "estilo_cuadro" (the visual style shared by every image, always ending with "Absolutely NO text, letters, numbers, logos, signs or watermarks anywhere.") and "musica_prompt" (an instrumental music prompt that fits the piece).
 Answer only with JSON: {"estilo_cuadro":"","musica_prompt":"","planos":[{"cuadro":"","movimiento":""}]}`;
 
