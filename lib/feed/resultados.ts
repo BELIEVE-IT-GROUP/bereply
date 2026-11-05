@@ -7,9 +7,13 @@ import { prisma } from "@/lib/db/client";
 import { median } from "./insights";
 
 const filaSchema = z.object({
-  maas2_asset_id: z.string(),
+  maas2_asset_id: z.string().nullish(),
   befeed_piece_id: z.string().nullish(),
   anuncio_id: z.string(),
+  nombre: z.string().nullish(),
+  objetivo: z.string().nullish(),
+  titular: z.string().nullish(),
+  mensaje: z.string().nullish(),
   campana: z.string().nullish(),
   formato: z.string().nullish(),
   estado: z.string().nullish(),
@@ -45,8 +49,12 @@ export async function syncAdResults() {
     for (const p of piezas) {
       const data = {
         instagramAccountId: account.id,
-        maasAssetId: p.maas2_asset_id,
+        maasAssetId: p.maas2_asset_id ?? null,
         befeedPieceId: p.befeed_piece_id ?? null,
+        nombre: p.nombre ?? null,
+        objetivo: p.objetivo ?? null,
+        titular: p.titular ?? null,
+        mensaje: p.mensaje ?? null,
         campana: p.campana ?? null,
         formato: p.formato ?? null,
         estado: p.estado ?? null,
@@ -67,20 +75,19 @@ export async function syncAdResults() {
   return { filas };
 }
 
-export type AdRow = { maasAssetId: string; moneda: string; resultados: number; gasto: number; costoPorResultado: number | null };
+export type AdRow = { moneda: string; objetivo?: string | null; resultados: number; gasto: number; costoPorResultado: number | null };
 
 const MIN_RESULTADOS = 10;
 const FACTOR_GANADOR = 0.7;
 
 /**
  * Un ganador cuesta menos del 70 % de la mediana de la propia marca, con al menos 10 resultados.
- * Se compara por moneda, nunca entre monedas. ponytail: el objetivo de la campaña no se separa;
- * si una marca mezcla objetivos, comparar por objetivo.
+ * Se compara solo dentro de la misma moneda y el mismo objetivo: un clic y un lead no cuestan lo mismo.
  */
 export function adWinners<T extends AdRow>(rows: T[]) {
   const validas = rows.filter((r) => r.resultados >= MIN_RESULTADOS && r.costoPorResultado != null);
   return validas.filter((r) => {
-    const mismas = validas.filter((o) => o.moneda === r.moneda);
+    const mismas = validas.filter((o) => o.moneda === r.moneda && (o.objetivo ?? null) === (r.objetivo ?? null));
     const mediana = median(mismas.map((o) => o.costoPorResultado));
     return mismas.length >= 3 && mediana != null && (r.costoPorResultado as number) < mediana * FACTOR_GANADOR;
   });
@@ -90,9 +97,10 @@ export function adWinners<T extends AdRow>(rows: T[]) {
 export async function adWinnersOf(accountId: string) {
   const rows = await prisma.feedAdResult.findMany({ where: { instagramAccountId: accountId } });
   const top = adWinners(rows);
-  const piezas = await prisma.feedPiece.findMany({ where: { maasAssetId: { in: top.map((t) => t.maasAssetId) } }, select: { id: true, maasAssetId: true, title: true, ad: true } });
+  const assets = top.map((t) => t.maasAssetId).filter((a): a is string => Boolean(a));
+  const piezas = assets.length ? await prisma.feedPiece.findMany({ where: { maasAssetId: { in: assets } }, select: { id: true, maasAssetId: true, title: true, ad: true } }) : [];
   return top.map((r) => {
     const pieza = piezas.find((p) => p.maasAssetId === r.maasAssetId);
-    return { ...r, pieceId: pieza?.id ?? null, titulo: (pieza?.ad as { titular?: string } | null)?.titular ?? pieza?.title ?? r.campana ?? "Anuncio" };
+    return { ...r, pieceId: pieza?.id ?? null, titulo: (pieza?.ad as { titular?: string } | null)?.titular ?? pieza?.title ?? r.titular ?? r.nombre ?? r.campana ?? "Anuncio" };
   });
 }

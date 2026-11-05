@@ -496,6 +496,12 @@ describe("ganadores en pauta", () => {
     expect(adWinners([fila("a", 100, 5), fila("b", 1000), fila("c", 1100)])).toEqual([]);
     expect(adWinners([fila("a", null), fila("b", 1000), fila("c", 1100)])).toEqual([]);
   });
+  it("no compara entre objetivos, y no necesita pieza", () => {
+    const f = (o: string, c: number) => ({ moneda: "COP", objetivo: o, resultados: 20, gasto: 1, costoPorResultado: c });
+    const clics = [f("TRAFICO", 100), f("TRAFICO", 110), f("TRAFICO", 120)];
+    const leads = [f("LEADS", 5000), f("LEADS", 9000), f("LEADS", 9500)];
+    expect(adWinners([...clics, ...leads]).map((r) => r.costoPorResultado)).toEqual([5000]);
+  });
   it("no compara entre monedas", () => {
     expect(adWinners([fila("a", 5, 20, "USD"), fila("b", 1000), fila("c", 1100), fila("d", 1200)])).toEqual([]);
   });

@@ -754,8 +754,13 @@ model FeedAdRequest {
 model FeedAdResult {
   anuncioId          String   @id
   instagramAccountId String
-  maasAssetId        String
+  /// Null si el anuncio no nació de una pieza del tablero: la mayoría de la pauta histórica.
+  maasAssetId        String?
   befeedPieceId      String?
+  nombre             String?
+  objetivo           String?
+  titular            String?
+  mensaje            String?
   campana            String?
   formato            String?
   estado             String?

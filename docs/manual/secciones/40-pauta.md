@@ -54,4 +54,4 @@ BeAds consulta cómo va su pedido. El estado sale de sus piezas: recibido, en pr
 
 Cada hora, BeFeed lee de BeAds el gasto, los resultados, el costo, la frecuencia y la fatiga de cada anuncio. Una pieza usada en pauta lo muestra en **Lo que rindió en pauta**. BeAds mide: BeFeed no recalcula nada.
 
-En **Ideas**, **Lo que ganó en pauta** muestra los anuncios que cuestan menos del 70 % de la mediana de la marca, con al menos 10 resultados. No se comparan monedas distintas. Con menos de tres anuncios comparables no hay ganadores. El generador de semana también los lee, como fórmula y sin copiar el texto.
+En **Ideas**, **Lo que ganó en pauta** mira toda la pauta de la marca en los últimos 90 días, tenga o no pieza en el tablero. Muestra los anuncios que cuestan menos del 70 % de la mediana de su mismo objetivo, con al menos 10 resultados. No se comparan monedas ni objetivos distintos. Con menos de tres anuncios comparables no hay ganadores. El generador de semana también los lee, como fórmula y sin copiar el texto.

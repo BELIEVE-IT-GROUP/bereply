@@ -35,11 +35,11 @@ export default async function IdeasPage() {
       {ganadoresPauta.length > 0 ? (
         <section className="plano">
           <h2 className="s">Lo que ganó en pauta</h2>
-          <p className="sub" style={{ fontSize: 13 }}>Cuesta menos del 70 % de la mediana de la marca, con al menos 10 resultados. Lo mide BeAds. El generador de semana también lo lee.</p>
+          <p className="sub" style={{ fontSize: 13 }}>Toda la pauta de la marca en 90 días. Cuesta menos del 70 % de la mediana de su mismo objetivo, con al menos 10 resultados. Lo mide BeAds. El generador de semana también lo lee.</p>
           <div className="lista">
             {ganadoresPauta.map((r) => (
               <div key={r.anuncioId}>
-                <span style={{ flex: "1 1 280px" }}><b style={{ fontWeight: 500 }}>{r.titulo}</b><br /><span className="mute">{r.resultados} resultados a {Math.round(r.costoPorResultado as number).toLocaleString("es-CO")} {r.moneda} cada uno</span></span>
+                <span style={{ flex: "1 1 280px" }}><b style={{ fontWeight: 500 }}>{r.titulo}</b><br /><span className="mute">{r.resultados} resultados a {Math.round(r.costoPorResultado as number).toLocaleString("es-CO")} {r.moneda} cada uno{r.objetivo ? ` · ${r.objetivo}` : ""}{r.pieceId ? "" : " · Sin pieza en el tablero"}</span></span>
                 {crear(r.titulo)}
               </div>
             ))}

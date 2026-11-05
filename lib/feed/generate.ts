@@ -144,7 +144,7 @@ export async function generateWeek(requestId: string) {
     const reels = await recentReels(account.id);
     const ganadores = winners(reels).map((r) => `${r.multiple}× ${r.caption?.split("\n")[0].slice(0, 100)} (${r.skipRate ?? "?"} % de salto)`);
 
-    const ganadoresPauta = (await adWinnersOf(account.id)).map((r) => `${r.titulo}: ${r.resultados} resultados a ${r.costoPorResultado} ${r.moneda} cada uno`);
+    const ganadoresPauta = (await adWinnersOf(account.id)).map((r) => `${r.titulo}${r.mensaje ? ` (texto: ${r.mensaje.slice(0, 200)})` : ""}: ${r.resultados} resultados a ${r.costoPorResultado} ${r.moneda} cada uno${r.objetivo ? `, objetivo ${r.objetivo}` : ""}`);
 
     const desde = req.startsOn.toISOString().slice(0, 10);
     const hasta = req.endsOn.toISOString().slice(0, 10);
