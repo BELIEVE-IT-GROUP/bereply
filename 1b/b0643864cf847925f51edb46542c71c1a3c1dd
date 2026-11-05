@@ -1,0 +1,55 @@
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_f4b43635a1e8ba 4-5,465-502
+app/api/feed/pedidos/[clave]/route.ts
+  s_3b98e1c0506fdd::t_e1742380e654a0 1-12
+app/api/feed/pedidos/route.ts
+  s_3b98e1c0506fdd::t_0612c5cdf37bb2 1-15
+app/feed/actions.ts
+  s_3b98e1c0506fdd::t_b5b3f849924c37 27,295-296,302-303,333-345
+app/feed/agente/page.tsx
+  s_3b98e1c0506fdd::t_57642ef0f8eb5c 26
+app/feed/ideas/page.tsx
+  s_3b98e1c0506fdd::t_65e19cddef37e6 4,12,16,35-49
+app/feed/page.tsx
+  s_3b98e1c0506fdd::t_4c1a61f42a40ab 7-8,41-51,63-85
+app/feed/pieza/[id]/page.tsx
+  s_3b98e1c0506fdd::t_2afa8eb5eebf9d 57,134-156
+app/feed/pieza/nueva/page.tsx
+  s_3b98e1c0506fdd::t_860bdfcf063759 1,9-11,13-16,20,22,24
+lib/feed/generate.ts
+  s_3b98e1c0506fdd::t_6ad0f04d691e55 17,147-148,161
+lib/feed/maas2.ts
+  s_3b98e1c0506fdd::t_aff0f6ff01416b 183
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_c40bdf96533a4f 159,162,164,168-178
+lib/feed/pedidos.ts
+  s_3b98e1c0506fdd::t_659e253dd1301d 1-90
+lib/feed/resultados.ts
+  s_3b98e1c0506fdd::t_3fa11324ea1f6a 1-98
+lib/feed/service.ts
+  s_3b98e1c0506fdd::t_bd655c38ecbf67 235,252
+prisma/migrations/20261105020000_befeed_pedidos/migration.sql
+  s_3b98e1c0506fdd::t_2fcd2573b24f4c 1-28
+prisma/migrations/20261105030000_befeed_resultados/migration.sql
+  s_3b98e1c0506fdd::t_eb2f81aa1ea9c6 1-23
+prisma/schema.prisma
+  s_3b98e1c0506fdd::t_25169dde3e8a4b 165-166,547-548,566,726-776
+worker/reel-runner.ts
+  s_3b98e1c0506fdd::t_10951fef04956b 18,183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bb0643864cf847925f51edb46542c71c1a3c1dd",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
