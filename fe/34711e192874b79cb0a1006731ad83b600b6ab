@@ -1,0 +1,31 @@
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_517e407adabf2b 499-504
+app/feed/ideas/page.tsx
+  s_3b98e1c0506fdd::t_fb91f2685275b4 38,42
+docs/manual/secciones/40-pauta.md
+  s_3b98e1c0506fdd::t_bffba81c3eec15 57
+lib/feed/generate.ts
+  s_3b98e1c0506fdd::t_584556a468cebd 147
+lib/feed/resultados.ts
+  s_3b98e1c0506fdd::t_6c21ae4beecb74 10,13-16,52,54-57,78,85,90,100-101,104
+prisma/migrations/20261105040000_befeed_toda_la_pauta/migration.sql
+  s_3b98e1c0506fdd::t_3f586425aa934a 1-7
+prisma/schema.prisma
+  s_3b98e1c0506fdd::t_aa90dfa9eccc50 757-758,760-763
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe34711e192874b79cb0a1006731ad83b600b6ab",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
