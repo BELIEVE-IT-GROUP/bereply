@@ -1,0 +1,23 @@
+app/feed/pieza/[id]/page.tsx
+  s_a3e095114abb5e::t_01a632c3bf44af 96
+docs/manual/secciones/40-pauta.md
+  s_a3e095114abb5e::t_699065e1d07183 27
+lib/feed/beads.ts
+  s_a3e095114abb5e::t_b8b06e1368d7a0 32-33,38-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c97eb789006b2eaa5b76c603a306ffc4b5c61f5d",
+  "prompts": {},
+  "sessions": {
+    "s_a3e095114abb5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "63e6640a-efb6-4f0d-ae80-63d9522cf291",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
