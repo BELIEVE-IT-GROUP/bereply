@@ -81,7 +81,7 @@ En `/Volumes/DEV/Developer/bereply/docs/landing/capturas/`, de la cuenta `@we_ar
 **Formatos**
 - El generador escribe Reel, carrusel, historias y post.
 - El Estudio solo produce Reel. Carruseles, historias y posts los diseña una persona y se suben a la pieza.
-- Una pieza de pauta en formato Reel también pasa por el Estudio. El arreglo que lo permite está en `main`, pendiente de desplegar.
+- Una pieza de pauta en formato Reel también puede pasar por el Estudio con el filtro de Daniela. Está en producción desde el 2026-11-05, cubierto con prueba automática; todavía no se ha producido ninguna así.
 
 **Quién hace qué**
 - "Believe genera, produce, opera la pauta y mide": cierto.
