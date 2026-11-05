@@ -1,8 +1,10 @@
 # El Estudio
 
-El Estudio produce Reels con voz, música, imágenes y clips generados. **Solo sirve para piezas sin tráiler, sala real ni personas reales.** Lo demás se graba o lo edita el equipo.
+El Estudio produce Reels verticales con voz, música, imágenes y clips generados. **Puede hacer el video que se te ocurra:** lo que se ve lo decide la ficha, y el borrador que propone es solo un punto de partida que puedes cambiar.
 
-Una pieza se puede producir cuando ya pasó los dos filtros y no está frenada.
+Lo que no entra en la ficha es material grabado, porque cada plano se genera a partir de texto. Un tráiler oficial o una grabación de la marca se editan aparte y se suben a la pieza como MP4. Un testimonio siempre se graba: una persona generada no reemplaza a un cliente real.
+
+Una pieza se puede producir cuando ya pasó sus filtros internos y no está frenada: Daniela y Jorge en orgánico, Daniela en pauta.
 
 ## Paso a paso
 

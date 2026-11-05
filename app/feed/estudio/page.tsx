@@ -18,7 +18,7 @@ export default async function EstudioPage() {
       <Head back={{ href: "/feed", label: "Hoy" }} eye={account ? `@${account.username} · Reels que se producen aquí` : "Reels que se producen aquí"}>
         Del guion al <i>MP4</i>
       </Head>
-      <p className="sub">Solo Reels sin tráiler, sala real ni personas reales: lo demás se graba o lo edita Carol. Un guion llega aquí con el botón Enviar a Estudio de su pieza.</p>
+      <p className="sub">Reels con voz, música, imágenes y clips generados. El material grabado se edita aparte y se sube a la pieza como MP4. Un guion llega aquí con el botón Enviar a Estudio de su pieza.</p>
       <section className="plano">
         {pieces.length === 0 ? <p className="sub">Nada todavía. Abre una pieza de la <Link href="/feed/semana" style={{ color: "inherit" }}>semana</Link> y envíala a Estudio.</p> : null}
         <div className="lista">

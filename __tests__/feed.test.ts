@@ -253,6 +253,11 @@ describe("del guion a la ficha", () => {
     expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: "Luis" })).toThrow("Luis");
     expect(() => assertCanProduce({ gatesPassed: ["DANIELA", "JORGE"], blockedBy: null })).not.toThrow();
   });
+
+  it("en pauta basta el filtro de Daniela para producir", () => {
+    expect(() => assertCanProduce({ gatesPassed: [], blockedBy: null, destination: "AD" })).toThrow("Daniela");
+    expect(() => assertCanProduce({ gatesPassed: ["DANIELA"], blockedBy: null, destination: "AD" })).not.toThrow();
+  });
 });
 
 describe("tablero de MAAS2", () => {

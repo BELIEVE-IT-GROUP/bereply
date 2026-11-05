@@ -2,6 +2,11 @@
 
 Cada versión de este manual, de la más nueva a la más vieja. Las entradas automáticas las escribe `scripts/manual/autoupdate.mjs`.
 
+## 1.2.3 (2026-11-05)
+
+- **El Estudio:** se corrige el límite que no era real. Puede hacer el video que se te ocurra; lo que no entra en la ficha es material grabado.
+- **Pauta:** una pieza de pauta se produce con el filtro de Daniela.
+
 ## 1.2.2 (2026-11-05)
 
 - **Lo que rindió en pauta:** los ganadores se comparan por la acción que cuentan, y una vista de página o una conversación no es una venta.
