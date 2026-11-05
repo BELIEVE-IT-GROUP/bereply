@@ -1,0 +1,76 @@
+lib/feed/anuncio.ts
+  s_3b98e1c0506fdd::t_1ba8b9e1df66c6 1-83
+lib/feed/beads.ts
+  s_3b98e1c0506fdd::t_b9d04979ea85f9 1-40
+  s_3b98e1c0506fdd::t_1db896ff69bca4 41-43
+__tests__/agency-workspaces.test.ts
+  s_3b98e1c0506fdd::t_362002045b6cb9 81
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_262017f0f9fbf1 1-4,364-462
+app/(dashboard)/layout.tsx
+  s_3b98e1c0506fdd::t_ccaebb8c107335 23
+app/api/automations/route.ts
+  s_3b98e1c0506fdd::t_386b43c7af0586 336
+app/api/cron/feed-metrics/route.ts
+  s_3b98e1c0506fdd::t_45bb5214bc4e98 14
+app/api/dashboard/stats/route.ts
+  s_3b98e1c0506fdd::t_677693c2347931 63,74
+app/api/instagram/accounts/route.ts
+  s_3b98e1c0506fdd::t_9b4e74e584f35e 23
+app/api/instagram/overview/route.ts
+  s_3b98e1c0506fdd::t_7bbc56b04c8b5f 214
+app/api/settings/maasy/route.ts
+  s_3b98e1c0506fdd::t_46fcc694166859 23
+app/feed/actions.ts
+  s_3b98e1c0506fdd::t_e6b35019c26d43 11,19-20,24,26,265-329
+app/feed/agente/page.tsx
+  s_3b98e1c0506fdd::t_96bcf24b039997 24-25
+app/feed/anuncio-form.tsx
+  s_3b98e1c0506fdd::t_fa7cd1fd35b722 1-25
+app/feed/cuentas/page.tsx
+  s_3b98e1c0506fdd::t_d761886d111751 5,42,81-94
+app/feed/pieza/[id]/page.tsx
+  s_3b98e1c0506fdd::t_2c3d1b98ba11c2 7-11,42-48,84,94-97,129,132,173-202
+app/feed/pieza/nueva/page.tsx
+  s_3b98e1c0506fdd::t_c688a336c3aeed 1-36
+app/feed/semana/page.tsx
+  s_3b98e1c0506fdd::t_eeab0de9f0c7d5 28,41,84
+docs/manual/manual.config.json
+  s_3b98e1c0506fdd::t_0ecef9e4a83602 77,286-296
+docs/manual/secciones/40-pauta.md
+  s_3b98e1c0506fdd::t_f96080c25a5f03 1-42
+lib/feed/board-sync.ts
+  s_3b98e1c0506fdd::t_b6897cb845beff 3,9,37-41,51-60,98,106-108,115-134
+lib/feed/context.ts
+  s_3b98e1c0506fdd::t_3a33674cbf142a 18
+lib/feed/maas2.ts
+  s_3b98e1c0506fdd::t_7a2154918bf56f 12,14-15,115,118-119,127-133,138-141,148,154,166,173-187,199-215,221-223,225,227,245,248,254
+lib/feed/mcp.ts
+  s_3b98e1c0506fdd::t_78fec2679915f2 12,26-27,61,151-174,388
+lib/feed/service.ts
+  s_3b98e1c0506fdd::t_1b867fad11fb7f 5,9-10,63,91,110-116,168-259,407
+lib/feed/stages.ts
+  s_3b98e1c0506fdd::t_ace0e5fcf0955b 25,32-35
+lib/instagram-accounts.ts
+  s_3b98e1c0506fdd::t_d76c08d9d220e0 39
+prisma/migrations/20261105010000_befeed_pauta/migration.sql
+  s_3b98e1c0506fdd::t_506b1c63301a5a 1-5
+prisma/schema.prisma
+  s_3b98e1c0506fdd::t_f76f3f98de8879 539-544
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c26295afaca9e53d66932591bec6956df730dde6",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
