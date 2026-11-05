@@ -29,14 +29,17 @@ export async function validarEnBeads(maas2ProyectoId: string, ad: Anuncio): Prom
       }),
       signal: AbortSignal.timeout(15_000),
     });
-    // Un texto prohibido llega como 200 con ok:false. Estos dos no son culpa del texto, y reintentar no los arregla.
-    if (res.status === 422) return { estado: "configuracion", motivo: `BeAds no puede validar esta marca: ${(await res.text()).slice(0, 240)}` };
+    // Un texto prohibido llega como 200 con ok:false. Un 422 puede ser la marca sin mandato o un campo vacío: su detalle lo dice.
+    if (res.status === 422) return { estado: "configuracion", motivo: `BeAds no pudo validarla: ${(await res.text()).slice(0, 240)}` };
     if (res.status === 401) return { estado: "configuracion", motivo: "BeAds rechazó la llave de BeFeed." };
     if (!res.ok) return { estado: "pendiente", motivo: `BeAds respondió ${res.status}.` };
     const out = (await res.json()) as { ok: boolean; claims?: string[]; marcadores?: string[]; avisos?: unknown[] };
     if (out.ok) return { estado: "ok", avisos: out.avisos };
-    const lista = [...(out.claims ?? []), ...(out.marcadores ?? [])].join(", ");
-    return { estado: "bloqueada", motivo: `Prohibido por el mandato: ${lista}.`, avisos: out.avisos };
+    const partes = [
+      out.claims?.length ? `Prohibido por el mandato: ${out.claims.join(", ")}.` : "",
+      out.marcadores?.length ? `Datos sin resolver: ${out.marcadores.join(", ")}.` : "",
+    ];
+    return { estado: "bloqueada", motivo: partes.filter(Boolean).join(" ") || "BeAds rechazó el texto.", avisos: out.avisos };
   } catch {
     return { estado: "pendiente", motivo: "BeAds no respondió." };
   }

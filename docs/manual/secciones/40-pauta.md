@@ -24,7 +24,7 @@ Antes de copiar la pieza, BeFeed le pregunta a BeAds si el texto cumple el manda
 |---|---|---|
 | **BeAds la rechazó** | Usa algo prohibido por el mandato | Pide cambios, corrige el anuncio y vuelve a pasarla |
 | **Validación pendiente** | BeAds no respondió. Se reintenta cada 5 minutos | Espera. Si sigue igual, avísale a Believe |
-| **Falta configurar BeAds** | La marca no tiene mandato o proyecto vinculado, o falta la conexión | Avísale a Believe. El motivo está en la pieza |
+| **BeAds no pudo validarla** | Falta el mandato de la marca, un campo o la conexión con BeAds | Lee el motivo en la pieza. Si no es un campo del anuncio, avísale a Believe |
 
 ## Si alguien cambia algo en el tablero
 

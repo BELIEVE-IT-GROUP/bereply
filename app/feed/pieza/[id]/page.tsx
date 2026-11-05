@@ -93,7 +93,7 @@ export default async function PiezaPage({
             {piece.maasAssetId ? <span className="tag ok">En el tablero</span> : <span className="tag">Aún no va al tablero</span>}
             {isAd ? <span className="tag azul">Pauta</span> : null}
             {check?.estado === "pendiente" ? <span className="tag freno">Validación pendiente</span> : null}
-            {check?.estado === "configuracion" ? <span className="tag freno">Falta configurar BeAds</span> : null}
+            {check?.estado === "configuracion" ? <span className="tag freno">BeAds no pudo validarla</span> : null}
             {check?.estado === "bloqueada" ? <span className="tag freno">BeAds la rechazó</span> : null}
           </div>
           {piece.measures ? <div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span className="rot">Qué mide</span><span>{piece.measures}</span></div> : null}
