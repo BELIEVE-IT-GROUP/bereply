@@ -2,6 +2,10 @@
 
 Cada versión de este manual, de la más nueva a la más vieja. Las entradas automáticas las escribe `scripts/manual/autoupdate.mjs`.
 
+## 1.2.0 (2026-11-05)
+
+- **Pedidos de BeAds** y **lo que rindió en pauta**, con los ganadores en Ideas y en el generador de semana.
+
 ## 1.1.0 (2026-11-05)
 
 - **Piezas de pauta:** crear una pieza de pauta, pasar un orgánico a pauta, qué ve el cliente, validación con BeAds, cambios en el tablero y marcas sin Instagram.

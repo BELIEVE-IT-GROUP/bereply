@@ -20,9 +20,13 @@ El volumen `openreply-reels` guarda el trabajo de cada Reel y los skills. La web
 
 La Action usa el secreto `BEFEED_SKILLS_TOKEN` del repo, igual al del `.env` del servidor y al de Infisical. Se usa este camino porque la organización tiene deshabilitadas las llaves de despliegue.
 
+## Pauta con BeAds
+
+BeFeed llama a `POST https://ads.believe-global.com/api/v1/befeed/validar` y `GET /api/v1/befeed/resultados` con `X-Beads-Befeed-Key` (`BEADS_BEFEED_KEY`). BeAds llama a `POST /api/feed/pedidos` y `GET /api/feed/pedidos/<clave>` con `X-Befeed-Pedidos-Key` (`BEFEED_PEDIDOS_KEY`). Ambas llaves están en Infisical. Son API de servicio con llave, cubiertas por la excepción de la regla 7. Una marca sin Instagram es una fila de `InstagramAccount` con `accessToken` vacío e `instagramId` `pauta:<slug>`: lo que habla con Meta ignora esas filas.
+
 ## Variables
 
-Además de las de BeReply: `FAL_API_KEY`, `elevenlabs_api_key`, `R2_*`, `MAAS2_SUPABASE_SELFHOST_URL`, `MAAS2_SUPABASE_SERVICE_ROLE_KEY`, `MAASY_MCP_API_TOKEN`, `BEFEED_SKILLS_TOKEN` y `FEED_MAX_REELS_DAY`. Las copias a MAAS2 las firma el perfil de `MAAS2_FEED_USER_EMAIL`, por defecto `jorge@believe-global.com`.
+Además de las de BeReply: `FAL_API_KEY`, `elevenlabs_api_key`, `R2_*`, `MAAS2_SUPABASE_SELFHOST_URL`, `MAAS2_SUPABASE_SERVICE_ROLE_KEY`, `MAASY_MCP_API_TOKEN`, `BEFEED_SKILLS_TOKEN`, `BEADS_BEFEED_KEY`, `BEFEED_PEDIDOS_KEY` y `FEED_MAX_REELS_DAY`. Las copias a MAAS2 las firma el perfil de `MAAS2_FEED_USER_EMAIL`, por defecto `jorge@believe-global.com`.
 
 ## Desplegar
 
@@ -32,7 +36,7 @@ docker compose -f docker-compose.prod.yml build openreply-web openreply-reels
 docker compose -f docker-compose.prod.yml up -d --no-build --no-deps openreply-web openreply-reels
 ```
 
-Con el host cargado, exportar la imagen tarda más de 20 minutos: no cortarla. Tras recrear la web hay unos 3 minutos de 503 mientras Traefik espera el healthcheck. Un trabajo que corría durante el reinicio queda en **Falló**, con el motivo, y se vuelve a pedir.
+La web aplica las migraciones al arrancar y el worker no las espera. Si un despliegue trae migraciones, el primer ciclo del worker puede fallar: reinicia `openreply-reels` cuando la web responda. Con el host cargado, exportar la imagen tarda más de 20 minutos: no cortarla. Tras recrear la web hay unos 3 minutos de 503 mientras Traefik espera el healthcheck. Un trabajo que corría durante el reinicio queda en **Falló**, con el motivo, y se vuelve a pedir.
 
 ## El tablero en la base
 

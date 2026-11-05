@@ -27,6 +27,10 @@ Asígnale la pieza del sábado a Carol, y mándame a Estudio la del jueves.
 ¿Qué Reels de Villa Elcira ganaron este mes y por qué? Dame tres ideas con esa fórmula.
 ```
 
+```pedido
+¿Qué pedidos de BeAds están abiertos? Crea la pieza de pauta del de fatiga, con este texto: ...
+```
+
 ## Lo que no puede hacer
 
 Aprobar, publicar, comentar ni mandar mensajes. No es una regla que se le pide respetar: esas herramientas no existen para él.

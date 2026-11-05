@@ -40,3 +40,18 @@ Si la pieza nace directo en el tablero, escribe el tag `ad` a mano al crearla. S
 ## Marcas que solo hacen pauta
 
 En **Cuentas**, **Marcas que solo hacen pauta**, agrega el nombre y su proyecto en MAAS2. No necesita Instagram conectado.
+
+## Pedidos de BeAds
+
+Cuando BeAds necesita material, por ejemplo porque un anuncio se agotó, deja un pedido en **Hoy**, en **Pedidos de BeAds**, con el motivo, el brief y para cuándo. **Un pedido no gasta ni produce nada:** decide una persona.
+
+- **Crear pieza** abre el formulario con el pedido a la vista, y la pieza queda unida a él.
+- **Rechazar** pide un motivo, y BeAds lo lee.
+
+BeAds consulta cómo va su pedido. El estado sale de sus piezas: recibido, en producción, con el cliente o listo.
+
+## Lo que rindió en pauta
+
+Cada hora, BeFeed lee de BeAds el gasto, los resultados, el costo, la frecuencia y la fatiga de cada anuncio. Una pieza usada en pauta lo muestra en **Lo que rindió en pauta**. BeAds mide: BeFeed no recalcula nada.
+
+En **Ideas**, **Lo que ganó en pauta** muestra los anuncios que cuestan menos del 70 % de la mediana de la marca, con al menos 10 resultados. No se comparan monedas distintas. Con menos de tres anuncios comparables no hay ganadores. El generador de semana también los lee, como fórmula y sin copiar el texto.
