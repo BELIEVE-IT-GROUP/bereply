@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { adDescription, formatosFor, huella, sameText, anuncioSchema } from "@/lib/feed/anuncio";
+import { validarEnBeads } from "@/lib/feed/beads";
+import { adTextChanged, decideFromBoard, filesFromBoard } from "@/lib/feed/board-sync";
 import { planFromScript, withScreenText } from "@/lib/feed/draft-ficha";
 import { textsToLint, unsourcedFigures } from "@/lib/feed/generate";
 import { boardName, boardStage, readyForBoard } from "@/lib/feed/maas2";
@@ -357,5 +359,104 @@ describe("texto en pantalla del Reel", () => {
     expect(withScreenText(con, "")).toEqual([con.texto[0]]);
     expect(withScreenText({ desde: "la", texto: [] }, "Nuevo")).toEqual([{ t: "Nuevo", tipo: "b", en: "la" }]);
     expect(withScreenText({ texto: [] }, "Nuevo", "hola")).toEqual([{ t: "Nuevo", tipo: "b", en: "hola" }]);
+  });
+});
+
+describe("pieza de pauta", () => {
+  const ad = {
+    titular: "Godzilla ya está en Uniplaza",
+    mensaje: "La función de esta semana,\r\ncon combo.  ",
+    descripcion: "",
+    enlace: "https://cinemauniplaza.com.co/",
+    llamado: "LEARN_MORE",
+    vigencia: { desde: "2026-11-12T00:00:00-05:00", hasta: "2026-11-18T23:59:00-05:00" },
+  };
+
+  it("da el mismo hash del contrato con BeAds", () => {
+    const formatos = [{ ratio: "9:16", video_url: "https://files.believe-global.com/clientes/befeed/x/reel.mp4", miniatura_url: "https://files.believe-global.com/clientes/befeed/x/poster.jpg" }];
+    expect(
+      huella(
+        { ...ad, formatos },
+        "Titular: Godzilla ya está en Uniplaza\nTexto: La función de esta semana,\ncon combo.",
+        ["https://files.believe-global.com/clientes/befeed/x/reel.mp4", "https://files.believe-global.com/clientes/befeed/x/poster.jpg"]
+      )
+    ).toBe("sha256:19a4f506449b5efc2541f652fa1002953a782310354dff103b5e5852e50411ed");
+  });
+
+  it("el texto visible contiene titular y mensaje", () => {
+    const parsed = anuncioSchema.parse({ ...ad, mensaje: "Con combo." });
+    const texto = adDescription(parsed);
+    expect(texto).toContain("Godzilla ya está en Uniplaza");
+    expect(texto).toContain("Con combo.");
+    expect(texto).toContain("Vigencia: del 12 al 18 de noviembre");
+  });
+
+  it("no acepta datos sin resolver ni enlaces sin https", () => {
+    expect(anuncioSchema.safeParse({ ...ad, titular: "Estreno {{dato}}" }).success).toBe(false);
+    expect(anuncioSchema.safeParse({ ...ad, enlace: "http://x.co" }).success).toBe(false);
+    expect(anuncioSchema.safeParse({ ...ad, vigencia: { desde: ad.vigencia.hasta, hasta: ad.vigencia.desde } }).success).toBe(false);
+  });
+
+  it("un carrusel deja que BeAds lea los archivos", () => {
+    expect(formatosFor("CARRUSEL", null, null, ["a", "b"])).toEqual([]);
+    expect(formatosFor("POST", null, null, ["a"])).toEqual([{ ratio: "4:5", imagen_url: "a" }]);
+    expect(formatosFor("REEL", "v", "p", [])).toEqual([{ ratio: "9:16", video_url: "v", miniatura_url: "p" }]);
+  });
+
+  it("en pauta el único filtro interno es Daniela", () => {
+    const pauta = { ...guion, destination: "AD", needsVideo: false, stage: "FILTROS" as const };
+    expect(nextGate(pauta)).toBe("DANIELA");
+    expect(nextGate({ ...pauta, gatesPassed: ["DANIELA"] })).toBe("CLIENTE");
+    expect(readyForBoard({ gatesPassed: ["DANIELA"], maasAssetId: null, destination: "AD" })).toBe(true);
+    expect(readyForBoard({ gatesPassed: ["DANIELA"], maasAssetId: null })).toBe(false);
+    expect(boardStage({ gatesPassed: ["DANIELA"], instagramMediaId: null, needsVideo: false, videoUrl: null, maasStage: null, destination: "AD" })).toBe("client_review");
+  });
+
+  it("nota cuando alguien cambió el texto en el tablero", () => {
+    const parsed = anuncioSchema.parse(ad);
+    const pieza = { destination: "AD", ad: parsed, blockedBy: null };
+    expect(adTextChanged(pieza, { description: adDescription(parsed) })).toBe(false);
+    expect(adTextChanged(pieza, { description: adDescription(parsed) + " editado" })).toBe(true);
+    expect(adTextChanged({ ...pieza, blockedBy: "Tablero" }, { description: "otro" })).toBe(false);
+    expect(adTextChanged({ destination: "ORGANICO", ad: null }, { description: "otro" })).toBe(false);
+    expect(sameText("a\r\nb ", "a\nb")).toBe(true);
+  });
+});
+
+describe("validación con BeAds", () => {
+  const ad = anuncioSchema.parse({
+    titular: "T",
+    mensaje: "M",
+    enlace: "https://x.co/",
+    llamado: "LEARN_MORE",
+    vigencia: { desde: "2026-12-24T00:00:00-05:00", hasta: "2026-12-30T23:59:00-05:00" },
+  });
+  const responde = (status: number, body: unknown) =>
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status })));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("separa lo prohibido de lo que no es culpa del texto", async () => {
+    vi.stubEnv("BEADS_BEFEED_KEY", "k");
+    responde(200, { ok: true, avisos: [] });
+    expect((await validarEnBeads("p", ad)).estado).toBe("ok");
+    responde(200, { ok: false, claims: ["el mejor"] });
+    expect(await validarEnBeads("p", ad)).toMatchObject({ estado: "bloqueada", motivo: "Prohibido por el mandato: el mejor." });
+    responde(422, { detail: "sin mandato" });
+    expect((await validarEnBeads("p", ad)).estado).toBe("configuracion");
+    responde(401, {});
+    expect((await validarEnBeads("p", ad)).estado).toBe("configuracion");
+    responde(503, {});
+    expect((await validarEnBeads("p", ad)).estado).toBe("pendiente");
+  });
+
+  it("sin respuesta queda pendiente, y sin llave falta configurar", async () => {
+    vi.stubEnv("BEADS_BEFEED_KEY", "k");
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("caído"); }));
+    expect((await validarEnBeads("p", ad)).estado).toBe("pendiente");
+    vi.stubEnv("BEADS_BEFEED_KEY", "");
+    expect((await validarEnBeads("p", ad)).estado).toBe("configuracion");
   });
 });

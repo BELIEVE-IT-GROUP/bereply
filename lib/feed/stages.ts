@@ -22,14 +22,17 @@ export type PieceGateState = {
   blockedBy: string | null;
   videoUrl: string | null;
   instagramMediaId: string | null;
+  destination?: string;
 };
 
 export class GateError extends Error {}
 
 const GATE_STAGE: Record<Gate, Stage> = { DANIELA: "FILTROS", JORGE: "FILTROS", CLIENTE: "CLIENTE", MP4: "VIDEO" };
 
-function requiredGates(piece: Pick<PieceGateState, "needsVideo">): Gate[] {
-  return piece.needsVideo ? ["DANIELA", "JORGE", "CLIENTE", "MP4"] : ["DANIELA", "JORGE", "CLIENTE"];
+/** En pauta el filtro interno es solo Daniela: decisión de George, 2026-11-04. */
+export function requiredGates(piece: Pick<PieceGateState, "needsVideo" | "destination">): Gate[] {
+  const filtros: Gate[] = piece.destination === "AD" ? ["DANIELA"] : ["DANIELA", "JORGE"];
+  return piece.needsVideo ? [...filtros, "CLIENTE", "MP4"] : [...filtros, "CLIENTE"];
 }
 
 export function nextGate(piece: PieceGateState): Gate | null {

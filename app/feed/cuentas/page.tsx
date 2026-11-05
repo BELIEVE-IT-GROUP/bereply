@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { recentReels } from "@/lib/feed/service";
 import { listProjects } from "@/lib/feed/maas2";
-import { chooseAccountAction, linkProjectAction } from "../actions";
+import { chooseAccountAction, createBrandAction, linkProjectAction } from "../actions";
 import { day, Head } from "../ui";
 
 export default async function CuentasPage() {
@@ -39,7 +39,7 @@ export default async function CuentasPage() {
               {filas.map(({ a, reels, perfil }) => (
                 <tr key={a.id}>
                   <td className="n">@{a.username}</td>
-                  <td>{a.maasyProjectId ? <span className="tag ok">Vinculada</span> : <span className="tag">Por vincular</span>}</td>
+                  <td>{a.instagramId.startsWith("pauta:") ? <span className="tag">Solo pauta</span> : a.maasyProjectId ? <span className="tag ok">Vinculada</span> : <span className="tag">Por vincular</span>}</td>
                   <td>
                     <form action={linkProjectAction} className="fila" style={{ gap: 6, flexWrap: "nowrap" }}>
                       <input type="hidden" name="accountId" value={a.id} />
@@ -77,6 +77,20 @@ export default async function CuentasPage() {
             <div className="paso"><b>3. Conectar</b><small>Aquí</small></div>
           </div>
           <p className="sub" style={{ fontSize: 13 }}>Funciona hoy, con métricas completas. Meta no deja invitar desde otra app: el botón Invitar en Meta abre su panel, en Agregar personas, Evaluador de Instagram.</p>
+        </section>
+        <section className="card">
+          <h2 className="s">Marcas que solo hacen pauta</h2>
+          <form action={createBrandAction} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <label className="rot" htmlFor="brand-name">Nombre</label>
+            <input className="input" id="brand-name" name="name" required placeholder="Felix" />
+            <label className="rot" htmlFor="brand-project">Proyecto en MAAS2</label>
+            <select className="input" id="brand-project" name="projectId" required defaultValue="">
+              <option value="" disabled>Elige el proyecto</option>
+              {proyectos.map((p) => <option key={p.id} value={p.id}>{p.brand_name}</option>)}
+            </select>
+            <p className="sub" style={{ fontSize: 13 }}>No necesita Instagram conectado. No tendrá métricas orgánicas ni generador de semana con cuenta.</p>
+            <button className="btn" type="submit">Agregar marca</button>
+          </form>
         </section>
         <section className="card">
           <h2 className="s">Clientes que se conectan solos</h2>

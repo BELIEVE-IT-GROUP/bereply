@@ -25,7 +25,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
       <>
         <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username}`}>Todavía no hay <i>semana</i></Head>
         <ErrorNote error={error} />
-        <p className="aviso">Se genera con la estrategia de la marca y queda aquí, en guion. <Link href="/feed/semana/generar">Generar semana</Link></p>
+        <p className="aviso">Se genera con la estrategia de la marca y queda aquí, en guion. <Link href="/feed/semana/generar">Generar semana</Link> · <Link href="/feed/pieza/nueva">Nueva pieza de pauta</Link></p>
       </>
     );
   }
@@ -38,6 +38,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
         actions={
           <>
             <Link className="btn" href="/feed/cierre">Ver el cierre</Link>
+            <Link className="btn" href={`/feed/pieza/nueva?dia=${week.startsOn.toISOString().slice(0, 10)}`}>Nueva pieza de pauta</Link>
             <Link className="btn pri" href="/feed/semana/generar">Generar semana</Link>
           </>
         }
@@ -80,6 +81,7 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
                       ) : null}
                       <span className="rot">{day(p.publishOn, { weekday: "short", day: "numeric" })} · {FORMAT_LABEL[p.format]}</span>
                       <b>{p.title}</b>
+                      {p.destination === "AD" ? <span className="tag azul">Pauta</span> : null}
                       {p.assigneeName || p.producedBy ? <span className="mute" style={{ fontSize: 12 }}>{p.assigneeName ?? "Estudio"}</span> : null}
                       {p.comments.length > 0 ? <span className="mute" style={{ fontSize: 12 }}>{p.comments.length} del cliente</span> : null}
                       {p.blockedBy ? <span className="tag freno">{p.blockedBy}</span>

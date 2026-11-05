@@ -8,6 +8,7 @@ import { ACCOUNT_COOKIE, feedContext } from "@/lib/feed/context";
 import {
   approvePiece,
   assignPiece,
+  createAdPiece,
   attachVideo,
   deleteWeek,
   logEvent,
@@ -15,10 +16,14 @@ import {
   refreshAccountMetrics,
   requestPieceChanges,
   requestWeek,
+  resendAd,
+  saveAd,
   savePiece,
   setBlocker,
   submitPiece,
+  useForAds,
 } from "@/lib/feed/service";
+import { vigenciaFrom } from "@/lib/feed/anuncio";
 import { listTeam } from "@/lib/feed/maas2";
 import { GATES, GateError, type Gate } from "@/lib/feed/stages";
 import { hashAgentToken, newAgentToken } from "@/lib/feed/tokens";
@@ -256,4 +261,69 @@ export async function deleteWeekAction(form: FormData) {
   }
   revalidatePath("/feed", "layout");
   redirect(`/feed/semana${error ? `?error=${encodeURIComponent(error)}` : ""}`);
+}
+
+const adFrom = (form: FormData) => ({
+  titular: text(form, "titular") ?? "",
+  mensaje: text(form, "mensaje") ?? "",
+  descripcion: text(form, "descripcion") ?? "",
+  enlace: text(form, "enlace") ?? "",
+  llamado: text(form, "llamado") ?? "",
+  vigencia: vigenciaFrom(text(form, "vigencia_desde") ?? "", text(form, "vigencia_hasta") ?? ""),
+});
+
+export async function saveAdAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  await onPiece(form, (id) => saveAd(workspaceId, id, adFrom(form), actor));
+}
+
+export async function useForAdsAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  await onPiece(form, (id) => useForAds(workspaceId, id, adFrom(form), actor));
+}
+
+export async function resendAdAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  await onPiece(form, (id) => resendAd(workspaceId, id, actor));
+}
+
+export async function createAdPieceAction(form: FormData) {
+  const { workspaceId, actor, account } = await feedContext();
+  if (!account) return;
+  const format = (text(form, "format") ?? "REEL") as "REEL" | "POST" | "CARRUSEL" | "HISTORIAS";
+  let id = "";
+  let error = "";
+  try {
+    const piece = await createAdPiece(
+      workspaceId,
+      account.id,
+      { title: text(form, "title") ?? "", format, day: text(form, "dia") ?? "", needsVideo: format === "REEL", ad: adFrom(form) },
+      actor
+    );
+    id = piece.id;
+  } catch (e) {
+    if (!(e instanceof GateError)) throw e;
+    error = e.message;
+  }
+  revalidatePath("/feed", "layout");
+  redirect(error ? `/feed/pieza/nueva?error=${encodeURIComponent(error)}` : `/feed/pieza/${id}`);
+}
+
+/** Una marca que solo hace pauta: se opera aquí sin conectar Instagram. Felix y Envía Ya, por ejemplo. */
+export async function createBrandAction(form: FormData) {
+  const { workspaceId, actor } = await feedContext();
+  const name = text(form, "name");
+  const maas2ProjectId = text(form, "projectId");
+  if (!name || !maas2ProjectId) return;
+  const slug = name.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  // ponytail: reusa la cuenta con token vacío en vez de un modelo de marca. Lo que habla con Meta ya ignora
+  // el token vacío. Si estas marcas necesitan más que producir pauta, toca separar marca de cuenta.
+  const account = await prisma.instagramAccount.upsert({
+    where: { instagramId: `pauta:${slug}` },
+    update: { name, maas2ProjectId },
+    create: { workspaceId, instagramId: `pauta:${slug}`, username: slug, name, accessToken: "", maas2ProjectId },
+  });
+  await logEvent(workspaceId, actor, "crear_marca_sin_instagram", { detail: name });
+  (await cookies()).set(ACCOUNT_COOKIE, account.id, { httpOnly: true, sameSite: "lax", path: "/feed", maxAge: 60 * 60 * 24 * 365 });
+  revalidatePath("/feed", "layout");
 }

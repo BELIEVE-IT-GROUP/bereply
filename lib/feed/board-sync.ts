@@ -1,10 +1,12 @@
 /** Trae a BeFeed lo que pasó en los tableros de MAAS2. Lo corre el cron cada 5 minutos. */
 import { prisma } from "@/lib/db/client";
+import { adDescription, sameText, type Anuncio } from "./anuncio";
 import { maas2Enabled, readBoardAssets, readBoardComments, type BoardAsset } from "./maas2";
 import { approvePiece, logEvent, pushQuietly, requestPieceChanges } from "./service";
 import { GateError, type Actor } from "./stages";
 
 const TABLERO: Actor = { type: "person", name: "Cliente, en el tablero" };
+export const FRENO_TABLERO = "Tablero";
 
 /** Qué hay que hacer con una pieza según lo que cambió en el tablero. Sin base de datos, para poder probarlo. */
 export function decideFromBoard(
@@ -32,6 +34,11 @@ export function filesFromBoard(asset: BoardAsset) {
   };
 }
 
+/** Alguien editó en el tablero el texto de un anuncio: ya no es lo que BeFeed mandó a aprobar. */
+export function adTextChanged(piece: { destination?: string; ad?: unknown; blockedBy?: string | null }, asset: Pick<BoardAsset, "description">) {
+  return piece.destination === "AD" && Boolean(piece.ad) && piece.blockedBy !== FRENO_TABLERO && !sameText(asset.description, adDescription(piece.ad as Anuncio));
+}
+
 export async function syncBoards() {
   if (!maas2Enabled()) return { skipped: "sin conexión con MAAS2" };
   const since = new Date(Date.now() - 45 * 86_400_000);
@@ -41,8 +48,16 @@ export async function syncBoards() {
     where: {
       maasAssetId: null,
       instagramMediaId: null,
-      NOT: { maasStage: "quitada" },
-      gatesPassed: { hasEvery: ["DANIELA", "JORGE"] },
+      // Un NOT solo sobre esta columna dejaría fuera los nulos, que son justo las que nunca llegaron.
+      AND: [
+        { OR: [{ maasStage: null }, { maasStage: { not: "quitada" } }] },
+        {
+          OR: [
+            { destination: "ORGANICO", gatesPassed: { hasEvery: ["DANIELA", "JORGE"] } },
+            { destination: "AD", gatesPassed: { has: "DANIELA" } },
+          ],
+        },
+      ],
       week: { endsOn: { gte: since }, instagramAccount: { maas2ProjectId: { not: null } } },
     },
     select: { id: true, week: { select: { workspaceId: true } } },
@@ -80,7 +95,7 @@ export async function syncBoards() {
 
     // Lo que subieron directo en el tablero entra a la pieza. Un video distinto vuelve a pedir aprobación.
     const archivos = filesFromBoard(asset);
-    const actuales = (piece.assets ?? []) as Array<{ url: string }>;
+    const actuales = [...((piece.assets ?? []) as Array<{ url: string }>), ...(piece.thumbnailUrl ? [{ url: piece.thumbnailUrl }] : [])];
     const videoNuevo = archivos.videoUrl && archivos.videoUrl !== piece.videoUrl;
     const imagenesNuevas = archivos.images.some((i) => !actuales.some((a) => a.url === i.url));
     if (videoNuevo || imagenesNuevas) {
@@ -88,14 +103,35 @@ export async function syncBoards() {
         where: { id: piece.id },
         data: {
           ...(videoNuevo ? { videoUrl: archivos.videoUrl, needsVideo: true, gatesPassed: piece.gatesPassed.filter((g) => g !== "MP4") } : {}),
-          ...(imagenesNuevas ? { assets: archivos.images, thumbnailUrl: piece.thumbnailUrl ?? archivos.images[0]?.url ?? null } : {}),
+          // Otro archivo en un anuncio es otro anuncio: el cliente vuelve a aprobarlo.
+          ...(piece.destination === "AD" ? { gatesPassed: piece.gatesPassed.filter((g) => g !== "MP4" && g !== "CLIENTE") } : {}),
+          ...(imagenesNuevas ? { assets: archivos.images.filter((i) => i.url !== piece.thumbnailUrl), thumbnailUrl: piece.thumbnailUrl ?? archivos.images[0]?.url ?? null } : {}),
         },
       });
       await logEvent(workspaceId, TABLERO, "archivo_desde_tablero", { pieceId: piece.id });
       changes += 1;
     }
 
-    if (videoNuevo) await pushQuietly(piece.id, workspaceId);
+    if (videoNuevo || (imagenesNuevas && piece.destination === "AD")) await pushQuietly(piece.id, workspaceId);
+
+    if (adTextChanged(piece, asset)) {
+      await prisma.feedPiece.update({
+        where: { id: piece.id },
+        data: {
+          blockedBy: FRENO_TABLERO,
+          blockedReason: `Cambió el texto en el tablero: «${(asset.description ?? "").slice(0, 300)}». Actualiza el anuncio aquí si el cambio vale, y reenvíalo al cliente.`,
+          gatesPassed: piece.gatesPassed.filter((g) => g !== "CLIENTE" && g !== "MP4"),
+        },
+      });
+      await logEvent(workspaceId, TABLERO, "anuncio_cambiado_en_tablero", { pieceId: piece.id });
+      changes += 1;
+      continue;
+    }
+    // MAAS2 borró metadata.ad y el texto sigue igual: se restaura sin molestar a nadie.
+    if (piece.destination === "AD" && piece.ad && piece.blockedBy !== FRENO_TABLERO && !asset.metadata?.ad) {
+      await pushQuietly(piece.id, workspaceId);
+      changes += 1;
+    }
 
     const decision = decideFromBoard(piece, asset.stage);
     const remember = () => prisma.feedPiece.update({ where: { id: piece.id }, data: { maasStage: asset.stage, maasSyncedAt: new Date() } });

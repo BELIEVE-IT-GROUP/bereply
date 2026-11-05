@@ -536,6 +536,12 @@ model FeedPiece {
   thumbnailUrl     String?
   instagramMediaId String?
   repeatDecision   String?
+  /// ORGANICO o AD. Solo una pieza AD lleva el tag ad al tablero, y BeAds solo toma esas.
+  destination      String     @default("ORGANICO")
+  /// Titular, mensaje, descripcion, enlace, llamado y vigencia.
+  ad               Json?
+  /// Lo que respondió BeAds al validar el texto: ok, bloqueada o pendiente.
+  adCheck          Json?
   /// Quién hace la pieza: ESTUDIO o DISENO.
   producedBy       String?
   assigneeId       String?

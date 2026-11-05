@@ -21,6 +21,8 @@ const PERMISO: Record<string, { label: string; className: string }> = {
   generar_semana: { label: "Gasta dinero", className: "tag azul" },
   asignar_pieza: { label: "Escribe borrador", className: "tag ok" },
   metodo: { label: "Solo lee", className: "tag" },
+  crear_pieza_de_pauta: { label: "Escribe borrador", className: "tag ok" },
+  guardar_anuncio: { label: "Escribe borrador", className: "tag ok" },
 };
 
 export default async function AgentePage() {

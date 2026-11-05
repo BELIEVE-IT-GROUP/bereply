@@ -2,10 +2,12 @@
  * Las operaciones de BeFeed. Las usan igual las pantallas y el MCP: así el agente
  * pasa por las mismas reglas que una persona y todo queda en el registro.
  */
-import type { FeedFormat, FeedPiece, Prisma } from "@/app/generated/prisma/client";
+import { Prisma, type FeedFormat, type FeedPiece } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
 import { getMediaInsights, getUserMedia, PermissionError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/oauth";
+import { anuncioSchema, sameText, type Anuncio } from "./anuncio";
+import type { AdCheck } from "./beads";
 import { videoUrlSchema } from "./ficha";
 import { pushPiece } from "./maas2";
 import { makePoster } from "./media";
@@ -58,6 +60,7 @@ export function gateState(p: FeedPiece): PieceGateState {
     blockedBy: p.blockedBy,
     videoUrl: p.videoUrl,
     instagramMediaId: p.instagramMediaId,
+    destination: p.destination,
   };
 }
 
@@ -85,6 +88,7 @@ async function transition(
   detail?: string
 ) {
   const piece = await pieceInWorkspace(workspaceId, pieceId);
+  if (action === "aprobar" && piece.destination === "AD") assertAdReady(piece);
   let next: PieceGateState;
   try {
     next = fn(gateState(piece));
@@ -101,6 +105,13 @@ async function transition(
   await logEvent(workspaceId, actor, action, { pieceId, detail });
   await pushQuietly(pieceId, workspaceId);
   return updated;
+}
+
+/** Un anuncio sin datos, o que BeAds ya rechazó, no pasa de puerta. */
+function assertAdReady(piece: FeedPiece) {
+  if (!piece.ad) throw new GateError("Faltan los datos del anuncio.");
+  const check = piece.adCheck as AdCheck | null;
+  if (check?.estado === "bloqueada") throw new GateError(check.motivo);
 }
 
 export const submitPiece = (workspaceId: string, pieceId: string, actor: Actor) =>
@@ -152,6 +163,98 @@ export async function attachVideo(workspaceId: string, pieceId: string, url: str
   await logEvent(workspaceId, actor, "adjuntar_video", { pieceId, detail: parsed.data });
   await pushQuietly(pieceId, workspaceId);
   return updated;
+}
+
+function parseAd(input: unknown): Anuncio {
+  const parsed = anuncioSchema.safeParse(input);
+  if (!parsed.success) throw new GateError(parsed.error.issues[0].message);
+  return parsed.data;
+}
+
+/** Escribe los datos de un anuncio. Lo que ya salió de guion necesita pedir cambios, o estar frenado por el tablero. */
+export async function saveAd(workspaceId: string, pieceId: string, input: unknown, actor: Actor) {
+  const piece = await pieceInWorkspace(workspaceId, pieceId);
+  if (piece.destination !== "AD") throw new GateError("Esta pieza no es de pauta.");
+  if (piece.stage !== "GUION" && piece.blockedBy !== "Tablero") {
+    throw new GateError("Ya está en revisión: una persona tiene que pedir cambios antes de reescribirla.");
+  }
+  const ad = parseAd(input);
+  // No hay linter de voz para un anuncio: lo revisan BeAds y Daniela.
+  await prisma.feedPiece.update({ where: { id: pieceId }, data: { ad, adCheck: Prisma.DbNull, linterClean: true } });
+  await logEvent(workspaceId, actor, "guardar_anuncio", { pieceId, detail: ad.titular });
+}
+
+/**
+ * Pasa un orgánico a pauta. Solo una persona: el agente no le pone el tag ad a un orgánico.
+ * Si el texto no cambia, no se reaprueba. Si cambia, vuelve al cliente (decisión de George, 2026-11-04).
+ */
+export async function useForAds(workspaceId: string, pieceId: string, input: unknown, actor: Actor) {
+  if (actor.type !== "person") throw new GateError("Pasar una pieza a pauta lo hace una persona, no el agente.");
+  const piece = await pieceInWorkspace(workspaceId, pieceId);
+  if (piece.destination === "AD") throw new GateError("Esta pieza ya es de pauta.");
+  const ad = parseAd(input);
+  const igual = sameText(ad.mensaje, piece.caption) && sameText(ad.titular, piece.title);
+  if (piece.instagramMediaId && !igual) throw new GateError("Ya está publicada: su texto no cambia aquí. Crea una pieza de pauta nueva.");
+  const gatesPassed = igual ? piece.gatesPassed : piece.gatesPassed.filter((g) => g !== "CLIENTE" && g !== "MP4");
+  await prisma.feedPiece.update({ where: { id: pieceId }, data: { destination: "AD", ad, adCheck: Prisma.DbNull, gatesPassed } });
+  await logEvent(workspaceId, actor, "usar_en_pauta", { pieceId, detail: igual ? "mismo texto" : "texto nuevo: vuelve al cliente" });
+  await pushQuietly(pieceId, workspaceId);
+}
+
+/** Suelta un anuncio que cambió en el tablero: vuelve a mandar lo de BeFeed y el cliente lo revisa otra vez. */
+export async function resendAd(workspaceId: string, pieceId: string, actor: Actor) {
+  const piece = await pieceInWorkspace(workspaceId, pieceId);
+  if (piece.blockedBy !== "Tablero") throw new GateError("Esta pieza no está frenada por el tablero.");
+  await prisma.feedPiece.update({
+    where: { id: pieceId },
+    data: { blockedBy: null, blockedReason: null, gatesPassed: piece.gatesPassed.filter((g) => g !== "CLIENTE" && g !== "MP4") },
+  });
+  await logEvent(workspaceId, actor, "reenviar_al_cliente", { pieceId });
+  await pushQuietly(pieceId, workspaceId);
+}
+
+/** La semana que contiene ese día, o una nueva de jueves a miércoles para la pauta. */
+export async function weekForDay(workspaceId: string, instagramAccountId: string, day: string, actor: Actor) {
+  const date = new Date(day);
+  if (Number.isNaN(date.getTime())) throw new GateError("Revisa la fecha.");
+  const found = await prisma.feedWeek.findFirst({ where: { instagramAccountId, startsOn: { lte: date }, endsOn: { gte: date } } });
+  if (found) return found;
+  const startsOn = new Date(date.getTime() - ((date.getUTCDay() + 3) % 7) * 86_400_000);
+  const endsOn = new Date(startsOn.getTime() + 6 * 86_400_000);
+  const week = await prisma.feedWeek.create({
+    data: { workspaceId, instagramAccountId, startsOn, endsOn, theme: "Pauta de la semana", measurableAction: "La define cada campaña en BeAds" },
+  });
+  await logEvent(workspaceId, actor, "crear_semana", { detail: day });
+  return week;
+}
+
+/** Crea una pieza de pauta en guion, con su anuncio. */
+export async function createAdPiece(
+  workspaceId: string,
+  instagramAccountId: string,
+  input: { title: string; format: FeedFormat; day: string; needsVideo: boolean; ad: unknown; script?: Array<{ time: string; voice: string; screen: string }> },
+  actor: Actor
+) {
+  const ad = parseAd(input.ad);
+  const week = await weekForDay(workspaceId, instagramAccountId, input.day, actor);
+  const last = await prisma.feedPiece.aggregate({ where: { weekId: week.id }, _max: { position: true } });
+  const piece = await prisma.feedPiece.create({
+    data: {
+      weekId: week.id,
+      position: (last._max.position ?? 0) + 1,
+      publishOn: new Date(input.day),
+      format: input.format,
+      title: input.title,
+      needsVideo: input.needsVideo,
+      linterClean: true,
+      destination: "AD",
+      ad,
+      script: (input.script ?? []) as Prisma.InputJsonValue,
+      measures: "Costo por resultado, en BeAds",
+    },
+  });
+  await logEvent(workspaceId, actor, "crear_pieza_de_pauta", { pieceId: piece.id, detail: input.title });
+  return piece;
 }
 
 export type WeekInput = {
@@ -301,6 +404,7 @@ export async function deleteWeek(workspaceId: string, weekId: string, actor: Act
 /** Trae de Meta las piezas recientes de una cuenta y sus métricas. Devuelve cuántas leyó. */
 export async function refreshAccountMetrics(accountId: string): Promise<number> {
   const account = await prisma.instagramAccount.findUniqueOrThrow({ where: { id: accountId } });
+  if (!account.accessToken) return 0; // Marca sin Instagram: solo produce pauta.
   const token = decryptToken(account.accessToken);
   const media = await getUserMedia(token, MEDIA_TO_READ);
   let read = 0;

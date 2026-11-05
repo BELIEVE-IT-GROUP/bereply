@@ -9,6 +9,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
 import { fichaSchema, reelsPerDay, type Ficha } from "./ficha";
 import { skipSeparation, summarize, winners } from "./insights";
+import { anuncioSchema } from "./anuncio";
 import { listTeam } from "./maas2";
 import { instagramMethod } from "./skills";
 import {
@@ -22,6 +23,8 @@ import {
   recentReels,
   refreshAccountMetrics,
   requestWeek,
+  createAdPiece,
+  saveAd,
   savePiece,
   setBlocker,
   stageFor,
@@ -55,6 +58,7 @@ function shapeWeek(week: NonNullable<Awaited<ReturnType<typeof currentWeek>>>) {
       puertas_abiertas: p.gatesPassed,
       frenada_por: p.blockedBy,
       motivo: p.blockedReason,
+      destino: p.destination,
       hecha_por: p.assigneeName ?? (p.producedBy === "ESTUDIO" ? "Estudio" : null),
       en_tablero: Boolean(p.maasAssetId),
       comentarios_del_tablero: p.comments.map((c) => ({ autor: c.author, texto: c.content, fecha: c.createdAt })),
@@ -142,6 +146,30 @@ export const TOOLS = {
       const { id } = await accountByUsername(workspaceId, u);
       const week = desde ? await weekByStart(id, desde) : await currentWeek(id);
       return week ? shapeWeek(week) : null;
+    },
+  },
+  crear_pieza_de_pauta: {
+    description:
+      "Crea una pieza de pauta en guion, con su anuncio. Solo llega al tablero cuando Daniela la aprueba. Es la única forma de que el agente cree pauta: un orgánico no se pasa a pauta desde aquí.",
+    input: cuenta.extend({
+      titulo: z.string().min(1),
+      formato: z.enum(["REEL", "CARRUSEL", "HISTORIAS", "POST"]),
+      dia: z.string().regex(fechaRe),
+      anuncio: anuncioSchema,
+      guion: z.array(z.object({ time: z.string(), voice: z.string(), screen: z.string() })).optional(),
+    }),
+    run: async (i: { cuenta: string; titulo: string; formato: "REEL" | "CARRUSEL" | "HISTORIAS" | "POST"; dia: string; anuncio: unknown; guion?: Array<{ time: string; voice: string; screen: string }> }, { workspaceId, actor }: Ctx) => {
+      const account = await accountByUsername(workspaceId, i.cuenta);
+      const piece = await createAdPiece(workspaceId, account.id, { title: i.titulo, format: i.formato, day: i.dia, needsVideo: i.formato === "REEL", ad: i.anuncio, script: i.guion }, actor);
+      return { pieza_id: piece.id };
+    },
+  },
+  guardar_anuncio: {
+    description: "Reescribe el anuncio de una pieza de pauta que siga en guion.",
+    input: pieza.extend({ anuncio: anuncioSchema }),
+    run: async (i: { pieza_id: string; anuncio: unknown }, { workspaceId, actor }: Ctx) => {
+      await saveAd(workspaceId, i.pieza_id, i.anuncio, actor);
+      return { ok: true };
     },
   },
   metodo: {
@@ -357,7 +385,7 @@ function schemaOf(input: z.ZodType) {
   return schema;
 }
 
-const WRITES = new Set<ToolName>(["generar_semana", "asignar_pieza", "guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "adjuntar_video", "pedir_reel"]);
+const WRITES = new Set<ToolName>(["crear_pieza_de_pauta", "guardar_anuncio", "generar_semana", "asignar_pieza", "guardar_marca", "crear_semana", "guardar_pieza", "pasar_a_filtros", "frenar_pieza", "adjuntar_video", "pedir_reel"]);
 
 /** Atiende un mensaje JSON-RPC. Devuelve null para las notificaciones, que no llevan respuesta. */
 export async function handleRpc(message: { id?: unknown; method?: string; params?: Record<string, unknown> }, ctx: Ctx) {

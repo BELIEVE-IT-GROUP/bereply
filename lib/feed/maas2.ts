@@ -9,8 +9,10 @@
  * Un fallo aquí nunca frena una acción en BeFeed: queda en el registro y el
  * siguiente ciclo lo reintenta.
  */
-import type { FeedPiece, FeedWeek } from "@/app/generated/prisma/client";
+import type { FeedPiece, FeedWeek, Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db/client";
+import { adDescription, formatosFor, huella, type Anuncio } from "./anuncio";
+import { validarEnBeads } from "./beads";
 
 const url = () => process.env.MAAS2_SUPABASE_SELFHOST_URL?.replace(/\/$/, "");
 const key = () => process.env.MAAS2_SUPABASE_SERVICE_ROLE_KEY;
@@ -110,11 +112,11 @@ type Script = Array<{ voice?: string }>;
 type Asset = { url: string; name?: string };
 
 /** La etapa que le corresponde en el tablero según lo aprobado en BeFeed. */
-export function boardStage(piece: Pick<FeedPiece, "gatesPassed" | "instagramMediaId" | "needsVideo" | "videoUrl" | "maasStage">) {
+export function boardStage(piece: Pick<FeedPiece, "gatesPassed" | "instagramMediaId" | "needsVideo" | "videoUrl" | "maasStage"> & { destination?: string }) {
   const g = piece.gatesPassed;
   if (piece.instagramMediaId) return "published";
-  // Sin los dos filtros el cliente no tiene nada que revisar. Un rechazo suyo se queda visible hasta que vuelva.
-  if (!g.includes("DANIELA") || !g.includes("JORGE")) return piece.maasStage === "rejected" ? "rejected" : "draft";
+  // Sin sus filtros el cliente no tiene nada que revisar. Un rechazo suyo se queda visible hasta que vuelva.
+  if (!passedFilters(piece)) return piece.maasStage === "rejected" ? "rejected" : "draft";
   if (!g.includes("CLIENTE")) return "client_review";
   // El cliente aprobó el guion. Cuando llega el video lo vuelve a ver.
   if (piece.needsVideo && piece.videoUrl && !g.includes("MP4")) return "client_review";
@@ -122,26 +124,34 @@ export function boardStage(piece: Pick<FeedPiece, "gatesPassed" | "instagramMedi
 }
 
 /** Solo sale al tablero lo que ya pasó los dos filtros: el cliente no ve borradores. */
-export function readyForBoard(piece: Pick<FeedPiece, "gatesPassed" | "maasAssetId">) {
-  return Boolean(piece.maasAssetId) || (piece.gatesPassed.includes("DANIELA") && piece.gatesPassed.includes("JORGE"));
+export function readyForBoard(piece: Pick<FeedPiece, "gatesPassed" | "maasAssetId"> & { destination?: string }) {
+  return Boolean(piece.maasAssetId) || passedFilters(piece);
+}
+
+function passedFilters(piece: { gatesPassed: string[]; destination?: string }) {
+  const g = piece.gatesPassed;
+  return piece.destination === "AD" ? g.includes("DANIELA") : g.includes("DANIELA") && g.includes("JORGE");
 }
 
 export function assetRow(piece: FeedPiece, ids: { projectId: string; boardId: string; userId: string }) {
   const assets = (piece.assets ?? []) as Asset[];
-  const files = [...(piece.videoUrl ? [{ url: piece.videoUrl, name: "Reel" }] : []), ...assets];
+  const isAd = piece.destination === "AD" && Boolean(piece.ad);
+  // En pauta la portada viaja con el video: BeAds no usa un archivo que el cliente no pudo ver.
+  const poster = isAd && piece.videoUrl && piece.thumbnailUrl ? [{ url: piece.thumbnailUrl, name: "Portada" }] : [];
+  const files = [...(piece.videoUrl ? [{ url: piece.videoUrl, name: "Reel" }] : []), ...poster, ...assets];
   const principal = files[0];
   const voces = ((piece.script ?? []) as Script).map((r) => r.voice?.replace(/\([^)]*\)/g, "").trim()).filter(Boolean);
   return {
     project_id: ids.projectId,
     board_id: ids.boardId,
     user_id: ids.userId,
-    title: `${FORMATO[piece.format]} - ${piece.title}`,
+    title: `${isAd ? "AD " : ""}${isAd ? FORMATO[piece.format].toUpperCase() : FORMATO[piece.format]} - ${piece.title}`,
     file_name: piece.title.slice(0, 120),
     // El tablero marca como texto lo que todavía no tiene archivo.
     file_type: principal ? mimeOf(principal.url) : "text/markdown",
     file_url: principal?.url ?? "inline",
     thumbnail_url: piece.thumbnailUrl ?? (principal && mimeOf(principal.url).startsWith("image") ? principal.url : null),
-    description: piece.caption ?? "",
+    description: isAd ? adDescription(piece.ad as Anuncio) : (piece.caption ?? ""),
     copy_text: voces.join("\n\n"),
     caption: piece.stories ?? "",
     format_type: FORMATO[piece.format],
@@ -153,9 +163,25 @@ export function assetRow(piece: FeedPiece, ids: { projectId: string; boardId: st
     published_date: piece.instagramMediaId ? isoDay(new Date()) : null,
     metadata: {
       befeed_piece_id: piece.id,
+      ...(isAd ? { ad: adMetadata(piece, files.map((f) => f.url)) } : {}),
       is_carousel: files.length > 1,
       carousel_files: files.map((f, i) => ({ url: f.url, name: f.name ?? `Archivo ${i + 1}`, path: "", size: 0, type: mimeOf(f.url), order_index: i })),
     },
+  };
+}
+
+/** Lo que BeAds usa para publicar: el texto, el medio y la huella que lo une con lo que vio el cliente. */
+function adMetadata(piece: FeedPiece, archivos: string[]) {
+  const ad = piece.ad as Anuncio;
+  const images = ((piece.assets ?? []) as Asset[]).map((a) => a.url);
+  const formatos = formatosFor(piece.format, piece.videoUrl, piece.thumbnailUrl, images);
+  return {
+    version: 1,
+    canal: "meta",
+    ...ad,
+    formatos,
+    huella_version: 1,
+    huella: huella({ ...ad, formatos }, adDescription(ad), archivos),
   };
 }
 
@@ -170,15 +196,35 @@ export async function pushPiece(pieceId: string) {
   if (!projectId) return { skipped: "la marca no tiene proyecto en MAAS2" };
   if (!readyForBoard(piece)) return { skipped: "no ha pasado los filtros" };
 
+  // Sin el visto bueno de BeAds una pieza de pauta no sale: no vale la pena que el cliente apruebe algo prohibido.
+  if (piece.destination === "AD") {
+    if (!piece.ad) return { skipped: "faltan los datos del anuncio" };
+    const check = await validarEnBeads(projectId, piece.ad as Anuncio);
+    await prisma.feedPiece.update({ where: { id: pieceId }, data: { adCheck: check as Prisma.InputJsonValue } });
+    if (check.estado !== "ok") {
+      // Se reintenta en cada ciclo, pero el historial solo lo cuenta cuando cambia.
+      const antes = piece.adCheck as { motivo?: string } | null;
+      if (antes?.motivo !== check.motivo) {
+        await prisma.feedEvent.create({
+          data: { workspaceId: piece.week.workspaceId, actorType: "agent", actorName: "BeAds", action: "validar_anuncio", pieceId, detail: check.motivo.slice(0, 200), outcome: check.estado },
+        });
+      }
+      return { skipped: check.motivo };
+    }
+  }
+
   const boardId = await ensureBoard(piece.week, projectId);
   const userId = await ownerId();
   const row = assetRow(piece, { projectId, boardId, userId });
 
   let assetId = piece.maasAssetId;
+  // Los tags son de la gente también: se agregan a los que ya tiene la pieza, sin borrarlos.
+  const actuales = assetId ? ((await rest<Array<{ tags: string[] | null }>>(`media_assets?select=tags&id=eq.${assetId}`))[0]?.tags ?? []) : [];
+  const tags = piece.destination === "AD" ? [...new Set([...actuales, "ad", "befeed"])] : actuales;
   if (assetId) {
-    await rest(`media_assets?id=eq.${assetId}`, { method: "PATCH", body: row });
+    await rest(`media_assets?id=eq.${assetId}`, { method: "PATCH", body: { ...row, tags } });
   } else {
-    assetId = (await rest<Array<{ id: string }>>("media_assets", { method: "POST", prefer: "return=representation", body: row }))[0].id;
+    assetId = (await rest<Array<{ id: string }>>("media_assets", { method: "POST", prefer: "return=representation", body: { ...row, tags } }))[0].id;
   }
   if (piece.maasStage !== row.stage) {
     await rest("media_approval_states", {
@@ -196,15 +242,16 @@ export async function pushPiece(pieceId: string) {
 export type BoardAsset = {
   id: string;
   stage: string | null;
+  description?: string | null;
   file_url: string;
   file_type: string;
-  metadata: { carousel_files?: Array<{ url: string; name?: string; type?: string }> } | null;
+  metadata: { carousel_files?: Array<{ url: string; name?: string; type?: string }>; ad?: { huella?: string } } | null;
 };
 
 /** Lee cómo están en el tablero las piezas que BeFeed copió. */
 export async function readBoardAssets(assetIds: string[]) {
   if (assetIds.length === 0) return [];
-  return rest<BoardAsset[]>(`media_assets?select=id,stage,file_url,file_type,metadata&id=in.(${assetIds.join(",")})`);
+  return rest<BoardAsset[]>(`media_assets?select=id,stage,description,file_url,file_type,metadata&id=in.(${assetIds.join(",")})`);
 }
 
 export async function readBoardComments(assetIds: string[]) {

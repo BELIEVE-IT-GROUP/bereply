@@ -4,8 +4,11 @@ import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { gateState, stageFor } from "@/lib/feed/service";
 import { listTeam } from "@/lib/feed/maas2";
-import { GATES, nextGate, type Gate } from "@/lib/feed/stages";
-import { approveAction, assignAction, attachVideoAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
+import { adDescription, type Anuncio } from "@/lib/feed/anuncio";
+import type { AdCheck } from "@/lib/feed/beads";
+import { nextGate, requiredGates, type Gate } from "@/lib/feed/stages";
+import { AnuncioFields } from "../../anuncio-form";
+import { approveAction, assignAction, attachVideoAction, resendAdAction, saveAdAction, useForAdsAction, blockAction, changesAction, publishAction, submitAction } from "../../actions";
 import { PieceMedia, UploadForm } from "../../media";
 import { sendToStudioAction } from "../../studio-actions";
 import { FORMAT_LABEL, GATE_HINT, GATE_LABEL, STAGE_LABEL } from "../../gates";
@@ -36,7 +39,13 @@ export default async function PiezaPage({
   const hooks = (piece.hooks ?? []) as Hook[];
   const script = (piece.script ?? []) as Row[];
   const assets = (piece.assets ?? []) as Array<{ url: string; name?: string }>;
-  const gates: Gate[] = GATES.filter((g) => g !== "MP4" || piece.needsVideo);
+  const gates: Gate[] = requiredGates(state);
+  const isAd = piece.destination === "AD";
+  const ad = piece.ad as Anuncio | null;
+  const check = piece.adCheck as AdCheck | null;
+  const frenadaPorTablero = piece.blockedBy === "Tablero";
+  const desde = piece.publishOn.toISOString().slice(0, 10);
+  const hasta = piece.week.endsOn.toISOString().slice(0, 10);
   const sinUsar =
     stage === "LISTA"
       ? await prisma.feedMediaMetric.findMany({
@@ -72,6 +81,7 @@ export default async function PiezaPage({
       </Head>
 
       <ErrorNote error={error} />
+      {check && check.estado !== "ok" ? <p className="err">{check.motivo}</p> : null}
       {piece.blockedBy ? <p className="err">Frenada: la tiene <b>{piece.blockedBy}</b>{piece.blockedReason ? `. ${piece.blockedReason}` : ""}</p> : null}
 
       <div className="tres">
@@ -81,6 +91,10 @@ export default async function PiezaPage({
             <span className="tag">{STAGE_LABEL[stage]}</span>
             {piece.linterClean ? <span className="tag ok">Linter limpio</span> : <span className="tag freno">Linter pendiente</span>}
             {piece.maasAssetId ? <span className="tag ok">En el tablero</span> : <span className="tag">Aún no va al tablero</span>}
+            {isAd ? <span className="tag azul">Pauta</span> : null}
+            {check?.estado === "pendiente" ? <span className="tag freno">Validación pendiente</span> : null}
+            {check?.estado === "configuracion" ? <span className="tag freno">Falta configurar BeAds</span> : null}
+            {check?.estado === "bloqueada" ? <span className="tag freno">BeAds la rechazó</span> : null}
           </div>
           {piece.measures ? <div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span className="rot">Qué mide</span><span>{piece.measures}</span></div> : null}
           {piece.firstThree ? <div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span className="rot">Primeros 3 s</span><span style={{ fontSize: 13 }}>{piece.firstThree}</span></div> : null}
@@ -112,9 +126,10 @@ export default async function PiezaPage({
               </div>
             </div>
           ) : null}
+          {ad ? <div className="plano"><h2 className="s">Lo que aprueba el cliente</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{adDescription(ad)}</p></div> : null}
           {piece.caption ? <div className="plano"><h2 className="s">Caption</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.caption}</p></div> : null}
           {piece.stories ? <div className="plano"><h2 className="s">Historias</h2><p style={{ margin: 0, maxWidth: "62ch", whiteSpace: "pre-line" }}>{piece.stories}</p></div> : null}
-          {script.length === 0 && !piece.caption ? <p className="aviso">Esta pieza aún no tiene texto. Pídeselo al agente con <span className="mono">guardar_pieza</span>.</p> : null}
+          {script.length === 0 && !piece.caption && !ad ? <p className="aviso">Esta pieza aún no tiene texto. Pídeselo al agente con <span className="mono">guardar_pieza</span>.</p> : null}
           {piece.comments.length > 0 ? (
             <div className="plano" style={{ gap: 2 }}>
               <h2 className="s" style={{ marginBottom: 6 }}>Comentarios del tablero</h2>
@@ -154,6 +169,36 @@ export default async function PiezaPage({
             })}
             <div className="pt"><span className={`m ${stage === "PUBLICADA" ? "ok" : stage === "LISTA" ? "ahora" : ""}`} /><div><b style={{ fontWeight: 500 }}>Publicación</b><br /><span className="mute" style={{ fontSize: 13 }}>La hace una persona, el {day(piece.publishOn, { day: "numeric", month: "long" })}</span></div></div>
           </section>
+
+          {frenadaPorTablero ? (
+            <form action={resendAdAction} className="card">
+              {hidden}
+              <h2 className="s">Cambió en el tablero</h2>
+              <p className="sub" style={{ fontSize: 13 }}>Si el cambio vale, primero actualiza el anuncio. Esto manda el texto de BeFeed y el cliente lo vuelve a aprobar.</p>
+              <button className="btn pri" type="submit">Reenviar al cliente</button>
+            </form>
+          ) : null}
+
+          {isAd && (stage === "GUION" || frenadaPorTablero) ? (
+            <form action={saveAdAction} className="card">
+              {hidden}
+              <h2 className="s">El anuncio</h2>
+              <AnuncioFields ad={ad ?? undefined} desde={desde} hasta={hasta} />
+              <button className="btn" type="submit">Guardar anuncio</button>
+            </form>
+          ) : null}
+
+          {!isAd ? (
+            <details className="card">
+              <summary className="s" style={{ cursor: "pointer" }}>Usar en pauta</summary>
+              <form action={useForAdsAction} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+                {hidden}
+                <AnuncioFields ad={{ titular: piece.title, mensaje: piece.caption ?? "" }} desde={desde} hasta={hasta} />
+                <p className="sub" style={{ fontSize: 13 }}>Si dejas igual el titular y el texto, no se vuelve a aprobar. Si los cambias, vuelve al cliente. Desde aquí BeAds la puede tomar.</p>
+                <button className="btn pri" type="submit">Pasar a pauta</button>
+              </form>
+            </details>
+          ) : null}
 
           {stage !== "PUBLICADA" ? (
             <form action={assignAction} className="card">

@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       },
     }),
     prisma.instagramAccount.findFirst({
-      where: { workspaceId },
+      where: { workspaceId, accessToken: { not: "" } },
       orderBy: { connectedAt: "desc" },
       select: {
         id: true,
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       },
     }),
     prisma.instagramAccount.findMany({
-      where: { workspaceId },
+      where: { workspaceId, accessToken: { not: "" } },
       orderBy: { connectedAt: "desc" },
       select: {
         id: true,

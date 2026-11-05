@@ -36,7 +36,7 @@ export async function getWorkspaceInstagramAccount(
   }
 
   return prisma.instagramAccount.findFirst({
-    where: { workspaceId },
+    where: { workspaceId, accessToken: { not: "" } },
     orderBy: { connectedAt: "desc" },
   });
 }

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const accounts = await prisma.instagramAccount.findMany({ select: { id: true, username: true } });
+  const accounts = await prisma.instagramAccount.findMany({ where: { accessToken: { not: "" } }, select: { id: true, username: true } });
   const results: Record<string, number | string> = {};
   for (const account of accounts) {
     try {

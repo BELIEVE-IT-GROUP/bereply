@@ -20,7 +20,7 @@ export async function GET() {
     const [brands, accounts] = await Promise.all([
       listMaasyBrands(),
       prisma.instagramAccount.findMany({
-        where: { workspaceId: context.workspaceId },
+        where: { workspaceId: context.workspaceId, accessToken: { not: "" } },
         select: { id: true, maasyProjectId: true, maasySyncedAt: true },
       }),
     ]);

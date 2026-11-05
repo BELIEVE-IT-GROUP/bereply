@@ -333,7 +333,7 @@ export async function POST(request: NextRequest) {
           where: { id: requestedInstagramAccountId, workspaceId },
         })
       : prisma.instagramAccount.findFirst({
-          where: { workspaceId },
+          where: { workspaceId, accessToken: { not: "" } },
           orderBy: { connectedAt: "desc" },
         }),
   ]);

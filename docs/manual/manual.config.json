@@ -74,6 +74,7 @@
         "35-el-tablero.md",
         "36-el-agente.md",
         "37-metricas-y-cierre.md",
+        "40-pauta.md",
         "38-problemas-befeed.md",
         "39-operacion-befeed.md"
       ],
@@ -281,6 +282,17 @@
         "worker/reel-runner.ts",
         "lib/feed/skills.ts",
         "scripts/cron.sh"
+      ]
+    },
+    "40-pauta.md": {
+      "sha": "9c9ee29e934edd178ba4e3047cf75d1670aa8175",
+      "paths": [
+        "lib/feed/anuncio.ts",
+        "lib/feed/beads.ts",
+        "lib/feed/maas2.ts",
+        "lib/feed/board-sync.ts",
+        "app/feed/anuncio-form.tsx",
+        "app/feed/pieza"
       ]
     }
   }

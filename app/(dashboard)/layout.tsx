@@ -20,7 +20,7 @@ export default async function DashboardLayout({
     session.user.email
   );
   const accounts = await prisma.instagramAccount.findMany({
-    where: { workspaceId: workspace.id },
+    where: { workspaceId: workspace.id, accessToken: { not: "" } },
     orderBy: { connectedAt: "desc" },
     select: { username: true },
   });
