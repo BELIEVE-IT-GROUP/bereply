@@ -2,6 +2,10 @@
 
 Cada versión de este manual, de la más nueva a la más vieja. Las entradas automáticas las escribe `scripts/manual/autoupdate.mjs`.
 
+## 1.2.1 (2026-11-05)
+
+- **Lo que rindió en pauta:** ahora se lee toda la pauta de la marca, y los ganadores se comparan dentro del mismo objetivo.
+
 ## 1.2.0 (2026-11-05)
 
 - **Pedidos de BeAds** y **lo que rindió en pauta**, con los ganadores en Ideas y en el generador de semana.
