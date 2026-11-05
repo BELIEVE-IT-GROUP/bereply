@@ -2,6 +2,10 @@
 
 Cada versión de este manual, de la más nueva a la más vieja. Las entradas automáticas las escribe `scripts/manual/autoupdate.mjs`.
 
+## 1.2.2 (2026-11-05)
+
+- **Lo que rindió en pauta:** los ganadores se comparan por la acción que cuentan, y una vista de página o una conversación no es una venta.
+
 ## 1.2.1 (2026-11-05)
 
 - **Lo que rindió en pauta:** ahora se lee toda la pauta de la marca, y los ganadores se comparan dentro del mismo objetivo.
