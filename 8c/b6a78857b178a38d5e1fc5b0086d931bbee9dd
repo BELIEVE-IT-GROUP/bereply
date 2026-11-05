@@ -1,0 +1,33 @@
+__tests__/feed.test.ts
+  s_e7bdce8feb9c72::t_2a573e64baeba2 505-510
+app/feed/ideas/page.tsx
+  s_e7bdce8feb9c72::t_eebcf6119ed901 4,38,42
+app/feed/pieza/[id]/page.tsx
+  s_e7bdce8feb9c72::t_c6ceafaba71055 7,147
+docs/manual/secciones/40-pauta.md
+  s_e7bdce8feb9c72::t_ce8975cabb8df7 57
+lib/feed/generate.ts
+  s_e7bdce8feb9c72::t_b1e86544fce8b8 17,147
+lib/feed/resultados.ts
+  s_e7bdce8feb9c72::t_9290d8106ad557 15,57,80-99,106-107,112
+prisma/migrations/20261105050000_befeed_tipo_resultado/migration.sql
+  s_e7bdce8feb9c72::t_ccf78f9c94142f 1-2
+prisma/schema.prisma
+  s_e7bdce8feb9c72::t_a005f862ca12ee 762-763
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8cb6a78857b178a38d5e1fc5b0086d931bbee9dd",
+  "prompts": {},
+  "sessions": {
+    "s_e7bdce8feb9c72": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3ba7e5b4-5b80-44af-be46-7fec3ac01e5f",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
