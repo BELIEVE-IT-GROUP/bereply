@@ -1,0 +1,30 @@
+docs/manual/manual.config.json
+  h_c5ca005a78c880 25,48,86,94,103,112,122,130,138,151,160,168,177,188,198,206,214,221,229,237,246,253,261,270,278,288
+docs/manual/operacion/CHANGELOG.md
+  h_c5ca005a78c880 5-13
+docs/manual/operacion/MANUAL-VERSION
+  h_c5ca005a78c880 1
+docs/manual/secciones/02-primeros-pasos.md
+  h_c5ca005a78c880 7,15
+docs/manual/secciones/04-conocimiento-de-marca.md
+  h_c5ca005a78c880 26
+docs/manual/secciones/21-infraestructura.md
+  h_c5ca005a78c880 7,13,25,30,40
+docs/manual/secciones/23-este-manual.md
+  h_c5ca005a78c880 10-11,32
+docs/manual/usuario/CHANGELOG.md
+  h_c5ca005a78c880 5-11
+docs/manual/usuario/MANUAL-VERSION
+  h_c5ca005a78c880 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "488c41b08be5554a475b3d18ed4081474f70f2b5",
+  "prompts": {},
+  "humans": {
+    "h_c5ca005a78c880": {
+      "author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
