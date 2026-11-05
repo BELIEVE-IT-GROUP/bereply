@@ -64,11 +64,11 @@ Todo en `/Volumes/DEV/Developer/believe-motion/clientes/uniplaza/2026-11-06-plan
 
 ## Capturas
 
-En `/Volumes/DEV/Developer/bereply/docs/landing/capturas/`, de la cuenta `@we_are_believe`. Todas salen del panel en 2x.
+En `/Volumes/DEV/Developer/bereply/docs/landing/capturas/`, de la cuenta `@we_are_believe`.
 
-- **Estudio con cuadros:** `13-estudio-cuadros.jpg`.
-- **Pieza con guion y puertas:** `03-pieza-reel.jpg`.
-- **Ganchos y caption:** `14-pieza-ganchos.jpg`.
+- **Estudio con cuadros:** `13-estudio-cuadros.jpg`, en 2x.
+- **Ganchos y caption:** `14-pieza-ganchos.jpg`, en 2x.
+- **Pieza con guion y puertas:** `03-pieza-reel.jpg`, reducida a 2000 px de ancho, cerca de 1,4x. En esta se lee el nombre de una persona del equipo.
 
 ## Qué es cierto
 
