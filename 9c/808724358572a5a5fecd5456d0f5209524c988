@@ -1,0 +1,34 @@
+docs/landing/ARTE.md
+  s_3b98e1c0506fdd::t_5b841a4382e2cb 1-103
+app/feed/estudio/page.tsx
+  s_3b98e1c0506fdd::t_fcb893db2a46f6 21
+docs/landing/PROMPT-landing-befeed.md
+  s_3b98e1c0506fdd::t_eee19e71fe5fdf 56
+  s_3b98e1c0506fdd::t_47ebb0e1ca2c52 1-2
+docs/manual/befeed/CHANGELOG.md
+  s_3b98e1c0506fdd::t_9e14a49566b044 5-9
+docs/manual/secciones/34-el-estudio.md
+  s_3b98e1c0506fdd::t_30308e2f70efaa 3,5-7
+__tests__/feed.test.ts
+  s_3b98e1c0506fdd::t_5552c4f8d29eeb 256-260
+lib/feed/stages.ts
+  s_3b98e1c0506fdd::t_4d4a4c1f3a5448 86-87,89-90
+docs/manual/befeed/MANUAL-VERSION
+  s_3b98e1c0506fdd::t_ebb63db951ede7 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c808724358572a5a5fecd5456d0f5209524c988",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
