@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { gateState, stageFor } from "@/lib/feed/service";
 import { listTeam } from "@/lib/feed/maas2";
+import { TIPO_RESULTADO } from "@/lib/feed/resultados";
 import { adDescription, type Anuncio } from "@/lib/feed/anuncio";
 import type { AdCheck } from "@/lib/feed/beads";
 import { nextGate, requiredGates, type Gate } from "@/lib/feed/stages";
@@ -143,7 +144,7 @@ export default async function PiezaPage({
                         <td>{r.campana ?? r.anuncioId}{r.fatiga ? <> <span className="tag freno">Fatiga</span></> : null}</td>
                         <td className="n">{r.estado ?? "—"}</td>
                         <td className="n">{r.gasto.toLocaleString("es-CO")} {r.moneda}</td>
-                        <td className="n">{r.resultados.toLocaleString("es-CO")}</td>
+                        <td className="n">{r.resultados.toLocaleString("es-CO")}{r.tipoResultado ? ` ${TIPO_RESULTADO[r.tipoResultado] ?? r.tipoResultado}` : ""}</td>
                         <td className="n">{r.costoPorResultado == null ? "—" : `${Math.round(r.costoPorResultado).toLocaleString("es-CO")} ${r.moneda}`}</td>
                         <td className="n">{r.frecuencia ?? "—"}</td>
                         <td className="n">{r.ultimoDato ?? "—"}</td>

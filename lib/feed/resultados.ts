@@ -12,6 +12,7 @@ const filaSchema = z.object({
   anuncio_id: z.string(),
   nombre: z.string().nullish(),
   objetivo: z.string().nullish(),
+  tipo_resultado: z.string().nullish(),
   titular: z.string().nullish(),
   mensaje: z.string().nullish(),
   campana: z.string().nullish(),
@@ -53,6 +54,7 @@ export async function syncAdResults() {
         befeedPieceId: p.befeed_piece_id ?? null,
         nombre: p.nombre ?? null,
         objetivo: p.objetivo ?? null,
+        tipoResultado: p.tipo_resultado ?? null,
         titular: p.titular ?? null,
         mensaje: p.mensaje ?? null,
         campana: p.campana ?? null,
@@ -75,19 +77,39 @@ export async function syncAdResults() {
   return { filas };
 }
 
-export type AdRow = { moneda: string; objetivo?: string | null; resultados: number; gasto: number; costoPorResultado: number | null };
+export const TIPO_RESULTADO: Record<string, string> = {
+  compras: "compras",
+  registros: "registros",
+  conversaciones: "conversaciones",
+  checkouts: "pagos iniciados",
+  carritos: "carritos",
+  vistas_de_pagina: "vistas de página",
+  clics_al_enlace: "clics al enlace",
+  reproducciones: "reproducciones",
+};
+export const OBJETIVO: Record<string, string> = {
+  OUTCOME_TRAFFIC: "Tráfico",
+  OUTCOME_SALES: "Ventas",
+  OUTCOME_LEADS: "Clientes potenciales",
+  OUTCOME_ENGAGEMENT: "Interacción",
+  OUTCOME_AWARENESS: "Reconocimiento",
+  OUTCOME_APP_PROMOTION: "Aplicación",
+};
+
+export type AdRow = { moneda: string; objetivo?: string | null; tipoResultado?: string | null; resultados: number; gasto: number; costoPorResultado: number | null };
 
 const MIN_RESULTADOS = 10;
 const FACTOR_GANADOR = 0.7;
 
 /**
  * Un ganador cuesta menos del 70 % de la mediana de la propia marca, con al menos 10 resultados.
- * Se compara solo dentro de la misma moneda y el mismo objetivo: un clic y un lead no cuestan lo mismo.
+ * Se compara solo dentro de la misma moneda, el mismo objetivo y la misma acción: una vista de página y
+ * una compra no cuestan lo mismo, y dentro de un objetivo cada anuncio puede contar una distinta.
  */
 export function adWinners<T extends AdRow>(rows: T[]) {
   const validas = rows.filter((r) => r.resultados >= MIN_RESULTADOS && r.costoPorResultado != null);
   return validas.filter((r) => {
-    const mismas = validas.filter((o) => o.moneda === r.moneda && (o.objetivo ?? null) === (r.objetivo ?? null));
+    const mismas = validas.filter((o) => o.moneda === r.moneda && (o.objetivo ?? null) === (r.objetivo ?? null) && (o.tipoResultado ?? null) === (r.tipoResultado ?? null));
     const mediana = median(mismas.map((o) => o.costoPorResultado));
     return mismas.length >= 3 && mediana != null && (r.costoPorResultado as number) < mediana * FACTOR_GANADOR;
   });

@@ -502,6 +502,12 @@ describe("ganadores en pauta", () => {
     const leads = [f("LEADS", 5000), f("LEADS", 9000), f("LEADS", 9500)];
     expect(adWinners([...clics, ...leads]).map((r) => r.costoPorResultado)).toEqual([5000]);
   });
+  it("no compara acciones distintas dentro del mismo objetivo", () => {
+    const f = (t: string, c: number) => ({ moneda: "MXN", objetivo: "OUTCOME_SALES", tipoResultado: t, resultados: 20, gasto: 1, costoPorResultado: c });
+    const vistas = [f("vistas_de_pagina", 1), f("vistas_de_pagina", 1.1), f("vistas_de_pagina", 1.2)];
+    const compras = [f("compras", 100), f("compras", 300), f("compras", 320)];
+    expect(adWinners([...vistas, ...compras]).map((r) => r.costoPorResultado)).toEqual([100]);
+  });
   it("no compara entre monedas", () => {
     expect(adWinners([fila("a", 5, 20, "USD"), fila("b", 1000), fila("c", 1100), fila("d", 1200)])).toEqual([]);
   });

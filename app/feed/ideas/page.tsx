@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { winners, worstHook } from "@/lib/feed/insights";
-import { adWinnersOf } from "@/lib/feed/resultados";
+import { adWinnersOf, OBJETIVO, TIPO_RESULTADO } from "@/lib/feed/resultados";
 import { currentWeek, recentReels } from "@/lib/feed/service";
 import { addReferenceAction, pieceFromWinnerAction, removeReferenceAction } from "../actions";
 import { firstLine, Head, NoAccount, pct, secs } from "../ui";
@@ -35,11 +35,11 @@ export default async function IdeasPage() {
       {ganadoresPauta.length > 0 ? (
         <section className="plano">
           <h2 className="s">Lo que ganó en pauta</h2>
-          <p className="sub" style={{ fontSize: 13 }}>Toda la pauta de la marca en 90 días. Cuesta menos del 70 % de la mediana de su mismo objetivo, con al menos 10 resultados. Lo mide BeAds. El generador de semana también lo lee.</p>
+          <p className="sub" style={{ fontSize: 13 }}>Toda la pauta de la marca en 90 días. Cuesta menos del 70 % de la mediana entre anuncios del mismo objetivo que cuentan lo mismo, con al menos 10. Lo mide BeAds. Una vista de página no es una venta. El generador de semana también lo lee.</p>
           <div className="lista">
             {ganadoresPauta.map((r) => (
               <div key={r.anuncioId}>
-                <span style={{ flex: "1 1 280px" }}><b style={{ fontWeight: 500 }}>{r.titulo}</b><br /><span className="mute">{r.resultados} resultados a {Math.round(r.costoPorResultado as number).toLocaleString("es-CO")} {r.moneda} cada uno{r.objetivo ? ` · ${r.objetivo}` : ""}{r.pieceId ? "" : " · Sin pieza en el tablero"}</span></span>
+                <span style={{ flex: "1 1 280px" }}><b style={{ fontWeight: 500 }}>{r.titulo}</b><br /><span className="mute">{r.resultados.toLocaleString("es-CO")} {TIPO_RESULTADO[r.tipoResultado ?? ""] ?? "resultados"} a {(r.costoPorResultado as number).toLocaleString("es-CO", { maximumFractionDigits: (r.costoPorResultado as number) < 10 ? 2 : 0 })} {r.moneda} cada uno{r.objetivo ? ` · ${OBJETIVO[r.objetivo] ?? r.objetivo}` : ""}{r.pieceId ? "" : " · Sin pieza en el tablero"}</span></span>
                 {crear(r.titulo)}
               </div>
             ))}

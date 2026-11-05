@@ -759,6 +759,8 @@ model FeedAdResult {
   befeedPieceId      String?
   nombre             String?
   objetivo           String?
+  /// Qué acción cuenta como resultado. Cambia de anuncio a anuncio, aun dentro del mismo objetivo.
+  tipoResultado      String?
   titular            String?
   mensaje            String?
   campana            String?

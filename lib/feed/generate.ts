@@ -14,7 +14,7 @@ import { getClient } from "@/lib/ai/responder";
 import { prisma } from "@/lib/db/client";
 import { winners } from "./insights";
 import { projectName } from "./maas2";
-import { adWinnersOf } from "./resultados";
+import { adWinnersOf, TIPO_RESULTADO } from "./resultados";
 import { createWeek, logEvent, recentReels, savePiece } from "./service";
 import { skillPath } from "./skills";
 import type { Actor } from "./stages";
@@ -144,7 +144,7 @@ export async function generateWeek(requestId: string) {
     const reels = await recentReels(account.id);
     const ganadores = winners(reels).map((r) => `${r.multiple}× ${r.caption?.split("\n")[0].slice(0, 100)} (${r.skipRate ?? "?"} % de salto)`);
 
-    const ganadoresPauta = (await adWinnersOf(account.id)).map((r) => `${r.titulo}${r.mensaje ? ` (texto: ${r.mensaje.slice(0, 200)})` : ""}: ${r.resultados} resultados a ${r.costoPorResultado} ${r.moneda} cada uno${r.objetivo ? `, objetivo ${r.objetivo}` : ""}`);
+    const ganadoresPauta = (await adWinnersOf(account.id)).map((r) => `${r.titulo}${r.mensaje ? ` (texto: ${r.mensaje.slice(0, 200)})` : ""}: ${r.resultados} ${TIPO_RESULTADO[r.tipoResultado ?? ""] ?? "resultados"} a ${r.costoPorResultado} ${r.moneda} cada uno${r.objetivo ? `, objetivo ${r.objetivo}` : ""}. No lo presentes como ventas si no son compras.`);
 
     const desde = req.startsOn.toISOString().slice(0, 10);
     const hasta = req.endsOn.toISOString().slice(0, 10);
