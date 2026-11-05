@@ -1,0 +1,19 @@
+docs/landing/PROMPT-landing-befeed.md
+  s_3b98e1c0506fdd::t_4781c53a29ce10 1-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b288185db83d3b5ca2e94c92256b7e78f0d61a43",
+  "prompts": {},
+  "sessions": {
+    "s_3b98e1c0506fdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e47d847e-2356-422b-bb49-4f353e6c9421",
+        "model": "unknown"
+      },
+      "human_author": "Jbelieve <jorge@believe-global.com>"
+    }
+  }
+}
