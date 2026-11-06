@@ -3,6 +3,7 @@
 | Qué ves | Qué significa | Qué hacer |
 |---|---|---|
 | La pieza dice *Aún no va al tablero* | No ha pasado los dos filtros, o la marca no tiene proyecto | Apruébala, o vincula el proyecto en **Cuentas** |
+| *Generar semana* dice *No encontré la voz* | La cuenta no está vinculada a su marca en Maasy | Elígela en **Cuentas**, columna **Marca en Maasy**, y vuelve a generar |
 | *Generar semana* dice **Falló** | Se ve el motivo en la misma línea | Vuelve a intentar. Si repite, avísale a Believe |
 | *Esa semana ya tiene piezas* | No se escribe encima de lo que existe | Bórrala abajo en **Semana** y genérala de nuevo |
 | Una pieza dice **Linter pendiente** | Una regla de la voz sigue fallando | Corrige el texto, o revísalo a mano |

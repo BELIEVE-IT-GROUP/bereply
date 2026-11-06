@@ -227,6 +227,17 @@ export async function linkProjectAction(form: FormData) {
   revalidatePath("/feed", "layout");
 }
 
+export async function linkMaasyAction(form: FormData) {
+  const { accounts, workspaceId, actor } = await feedContext();
+  const account = accounts.find((a) => a.id === text(form, "accountId"));
+  if (!account) return;
+  const maasyProjectId = text(form, "maasyId");
+  // ponytail: el conocimiento de DMs se refresca en el cron diario sync-maasy, no aquí (tarda un minuto).
+  await prisma.instagramAccount.update({ where: { id: account.id }, data: { maasyProjectId, ...(maasyProjectId ? {} : { maasySyncedAt: null }) } });
+  await logEvent(workspaceId, actor, "vincular_maasy", { detail: `@${account.username}` });
+  revalidatePath("/feed", "layout");
+}
+
 export async function generateWeekAction(form: FormData) {
   const { workspaceId, actor, account } = await feedContext();
   if (!account) return;

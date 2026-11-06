@@ -2,12 +2,13 @@ import { prisma } from "@/lib/db/client";
 import { feedContext } from "@/lib/feed/context";
 import { recentReels } from "@/lib/feed/service";
 import { listProjects } from "@/lib/feed/maas2";
-import { chooseAccountAction, createBrandAction, linkProjectAction } from "../actions";
+import { listMaasyBrands } from "@/lib/maasy/brand";
+import { chooseAccountAction, createBrandAction, linkMaasyAction, linkProjectAction } from "../actions";
 import { day, Head } from "../ui";
 
 export default async function CuentasPage() {
   const { accounts, account } = await feedContext();
-  const proyectos = await listProjects().catch(() => []);
+  const [proyectos, marcasMaasy] = await Promise.all([listProjects().catch(() => []), listMaasyBrands().catch(() => [])]);
   const filas = await Promise.all(
     accounts.map(async (a) => ({
       a,
@@ -39,7 +40,16 @@ export default async function CuentasPage() {
               {filas.map(({ a, reels, perfil }) => (
                 <tr key={a.id}>
                   <td className="n">@{a.username}</td>
-                  <td>{a.instagramId.startsWith("pauta:") ? <span className="tag">Solo pauta</span> : a.maasyProjectId ? <span className="tag ok">Vinculada</span> : <span className="tag">Por vincular</span>}</td>
+                  <td>
+                    <form action={linkMaasyAction} className="fila" style={{ gap: 6, flexWrap: "nowrap" }}>
+                      <input type="hidden" name="accountId" value={a.id} />
+                      <select className="input" name="maasyId" defaultValue={a.maasyProjectId ?? ""} aria-label={`Marca de @${a.username} en Maasy`} style={{ minWidth: 150 }}>
+                        <option value="">Sin vincular</option>
+                        {marcasMaasy.map((m) => <option key={m.id} value={m.id}>{m.brand_name}</option>)}
+                      </select>
+                      <button className="btn" type="submit">Guardar</button>
+                    </form>
+                  </td>
                   <td>
                     <form action={linkProjectAction} className="fila" style={{ gap: 6, flexWrap: "nowrap" }}>
                       <input type="hidden" name="accountId" value={a.id} />

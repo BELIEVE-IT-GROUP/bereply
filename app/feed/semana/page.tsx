@@ -25,7 +25,11 @@ export default async function SemanaPage({ searchParams }: { searchParams: Promi
       <>
         <Head back={{ href: "/feed", label: "Hoy" }} eye={`@${account.username}`}>Todavía no hay <i>semana</i></Head>
         <ErrorNote error={error} />
-        <p className="aviso">Se genera con la estrategia de la marca y queda aquí, en guion. <Link href="/feed/semana/generar">Generar semana</Link> · <Link href="/feed/pieza/nueva">Nueva pieza de pauta</Link></p>
+        <p className="aviso">Se genera con la estrategia de la marca y queda aquí, en guion.</p>
+        <div className="fila" style={{ gap: 10, marginTop: 16 }}>
+          <Link className="btn pri" href="/feed/semana/generar">Generar semana</Link>
+          <Link className="btn" href="/feed/pieza/nueva">Nueva pieza de pauta</Link>
+        </div>
       </>
     );
   }
